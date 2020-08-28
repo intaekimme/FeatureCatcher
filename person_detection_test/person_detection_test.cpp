@@ -3,16 +3,19 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <iostream>
 #include <stdio.h>
+#include <fstream>
+#include <time.h>
 
 #define PROCESS_PER_FRAME 1
 
 std::vector<std::vector<float>> globalReIdVec;
 int frameForProcess = PROCESS_PER_FRAME;
 std::array<std::string, 8> attributesString{ "is_male", "has_bag", "has_backpack", "has_hat", "has_longsleeves", "has_longpants", "has_longhair", "has_coat_jacket" };
-
+int frameCounting = 0;
 template <typename T>
 float cosineSimilarity(const std::vector<T>& vecA, const std::vector<T>& vecB) {
     if (vecA.size() != vecB.size()) {
@@ -60,6 +63,7 @@ int main(int, char**)
 {
     cv::Mat frame;
     cv::VideoCapture cap;
+
     // open the default camera using default API
     // cap.open(0);
     // OR advance usage: select any API backend
@@ -67,12 +71,21 @@ int main(int, char**)
     int apiID = cv::CAP_ANY; // 0 = autodetect default API
     // open selected camera using selected API
     // cap.open(deviceID, apiID);
-    cap.open("video_test3.mp4");
+
+    uchar ntblue, ntgreen, ntred, nbblue, nbgreen, nbred;
+    //ntblue = 0; ntgreen = 0; ntred = 0; nbblue = 0; nbgreen = 0; nbred = 0;
+
+
+    cap.open("video_test5.mp4");
     if (!cap.isOpened())
     {
         std::cerr << "ERROR! Unable to open camera\n";
         return -1;
     }
+
+    //what is video fps that get VideoCapture Class 
+    double video_fps = cap.get(cv::CAP_PROP_FPS);
+
 
     std::string persondetectorConfigFile = "person-detection-0102.xml";
     std::string personDetectorFile = "person-detection-0102.bin";
@@ -150,16 +163,87 @@ int main(int, char**)
         std::cout << "Done loading the person attributes recognizer!\n\n";
     }
 
+    //test print video fps and total frame
+    std::cout << "present video fps is : " << video_fps << std::endl;
+    std::cout << " Total Frame count : " << cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT)) << std::endl;
+    std::cout << "Frame per second : " << cvRound(cap.get(cv::CAP_PROP_FPS)) << std::endl;
+    std::cout << "Frame width : " << cvRound(cap.get(cv::CAP_PROP_FRAME_WIDTH)) << std::endl;
+    std::cout << "Frame height : " << cvRound(cap.get(cv::CAP_PROP_FRAME_HEIGHT)) << std::endl;
+
+    // open videolog text file
+    std::ofstream videologFile;
+    std::string inputFileStr;
+    videologFile.open("videolog.txt");
+    if (videologFile.is_open() == false) {
+        std::cerr << "Couldn't open the videolog text file!\n";
+        return -2;
+    }
+    else {
+        std::cout << "Done opening the videolog text file\n\n";
+    }
+
+
     std::vector<std::string> peopleId;
     std::vector<cv::Rect> peopleRect;
     std::vector<cv::Rect> faceRect;
     std::vector<std::pair<std::string, std::string>> ageGender;
     std::vector<std::vector<bool>> peopleAttributes;
-    std::vector<std::pair<cv::Point, cv::Point>> peopleColor;
+    std::vector<std::pair<cv::Point, cv::Point>> peopleColor_point;
+    std::vector<std::pair<cv::Vec3b, cv::Vec3b>> peopleColor_vec3b;
+
     while (true)
     {
+        frameCounting++;
         // wait for a new frame from camera and store it into 'frame'
         cap.read(frame);
+
+        //print video fps, total video frame count and present milli second in video
+        cv::putText(frame,
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_FPS))),
+            cv::Point(15, 50),
+            cv::FONT_HERSHEY_COMPLEX,
+            0.5,
+            cv::Scalar(0, 0, 0),
+            1.3
+        );
+
+        cv::putText(frame,
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT))),
+            cv::Point(45, 50),
+            cv::FONT_HERSHEY_COMPLEX,
+            0.5,
+            cv::Scalar(0, 0, 0),
+            1.3
+        );
+
+        cv::putText(frame,
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_FRAMES))),
+            cv::Point(105, 50),
+            cv::FONT_HERSHEY_COMPLEX,
+            0.5,
+            cv::Scalar(0, 0, 0),
+            1.3
+        );
+
+        cv::putText(frame,
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT))),
+            cv::Point(45, 50),
+            cv::FONT_HERSHEY_COMPLEX,
+            0.5,
+            cv::Scalar(0, 0, 0),
+            1.3
+        );
+
+        cv::putText(frame,
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))),
+            cv::Point(165, 50),
+            cv::FONT_HERSHEY_COMPLEX,
+            0.5,
+            cv::Scalar(0, 0, 0),
+            1.3
+        );
+
+
         if (frame.empty())
         {
             std::cerr << "ERROR! blank frame grabbed\n";
@@ -176,7 +260,9 @@ int main(int, char**)
             faceRect.clear();
             ageGender.clear();
             peopleAttributes.clear();
-            peopleColor.clear();
+            peopleColor_point.clear();
+            peopleColor_vec3b.clear();
+
 
             cv::Mat peopleDetectorInputBlob = cv::dnn::blobFromImage(frame, 0.58, cv::Size(512, 512), cv::Scalar(103.53, 116.28, 123.675));
             personDetector.setInput(peopleDetectorInputBlob, "image");
@@ -233,6 +319,7 @@ int main(int, char**)
                     /*----------------------------------감지한 얼굴로부터 age, gender 감지-------------------------------*/
                     std::string age = "";
                     std::string gender = "";
+                    float age_float = 0;
                     if (face.x != 0 && face.y != 0)
                     {
                         cv::Mat faceFrame = frame(face); // 얼굴 이미지 따로 복사
@@ -243,6 +330,7 @@ int main(int, char**)
                         ageGenderRecognizer.forward(ageGenderRecognizerOutputs, ageGenderOutputLayers); // output layer가 1개 이상일때는 이와 같이 할 수도 있음.
 
                         age = std::to_string(*ageGenderRecognizerOutputs[0].ptr<float>() * 100); // [1, 1, 1, 1]. 내부에는 age값을 100으로 나눈 값이 들어가 있다.
+                        age_float = *ageGenderRecognizerOutputs[0].ptr<float>() * 100;
                         float pFemale = *ageGenderRecognizerOutputs[1].ptr<float>(); // [1, 2, 1, 1]. 즉, 2개의 실수 값이 안에 저장되어 있는데, 두 값을 더하면 1이 되는 softMax값이다. 그냥 저대로 하면 여자일 확률 나옴. 다음 인덱스에는 남자일 확률 들어가 있다.
                         gender = (pFemale > 0.5f) ? "female" : "male";
                     }
@@ -265,18 +353,27 @@ int main(int, char**)
 
                     std::vector<bool> personAttributes; // 0.5 기준으로 true, false 판단해 bool 값으로 저장
                     for (int j = 0; j < attributesString.size(); j++)
-                        personAttributes.push_back(personAttributesValues[j] > 0.5f);
+                        personAttributes.push_back(personAttributesValues[j] > 0.3f);
                     int topx = static_cast<int>(*attributesRecognizerOutputs[1].ptr<float>() * personFrame.cols + px1);
                     int topy = static_cast<int>(*(attributesRecognizerOutputs[1].ptr<float>() + 1) * personFrame.rows + py1);
                     int botx = static_cast<int>(*attributesRecognizerOutputs[2].ptr<float>() * personFrame.cols + px1);
                     int boty = static_cast<int>(*(attributesRecognizerOutputs[2].ptr<float>() + 1) * personFrame.rows + py1);
                     cv::Point2f topColor(topx, topy);
                     cv::Point2f bottomColor(botx, boty);
+
+                    cv::Vec3b top_color = frame.at<cv::Vec3b>(cv::Point(topx, topy)); // color picking
+                    cv::Vec3b bottom_color = frame.at<cv::Vec3b>(cv::Point(botx, boty)); // color picking
+
+                    std::cout << "start detecting person's dress color" << std::endl;
+                    std::cout << "top : " << topx << ", " << topy << std::endl;
+                    std::cout << "bottom : " << botx << ", " << boty << std::endl;
+                    std::cout << "complete detecting person's dress color" << std::endl;
+
                     peopleAttributes.push_back(personAttributes);
-                    peopleColor.push_back(std::make_pair(topColor, bottomColor));
-                    /*---------------------------------------------------------------------------------------------------*/
+                    peopleColor_point.push_back(std::make_pair(topColor, bottomColor));
+                    peopleColor_vec3b.push_back(std::make_pair(top_color, bottom_color));
 
-
+                   
 
                     /*-----------------------------------------각 사람의 ID 감지-----------------------------------------*/
                     cv::Mat personIdentifierInputBlob = cv::dnn::blobFromImage(personFrame, 0.58, cv::Size(128, 256), cv::Scalar(103.53, 116.28, 123.675));
@@ -294,10 +391,87 @@ int main(int, char**)
                     personId = std::to_string(foundId);
                     peopleId.push_back(personId);
                     /*---------------------------------------------------------------------------------------------------*/
+
+                    std::cout << "start saving img" << std::endl;
+                    // saving image
+                    //cv::Rect roi(cv::Point2f(x1, y1), cv::Point2f(x2, y2));
+                    cv::Rect roi_all(cv::Point(0, 0), cv::Point(640, 360));
+                    cv::Mat3b crop_all = frame(roi_all);
+                    cv::String srcImg_all = "img/" + std::to_string(cvRound(cap.get(cv::CAP_PROP_FPS)))
+                        + "_"
+                        + std::to_string(cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT)))
+                        + "_"
+                        + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC)))
+                        + ".bmp";
+                    cv::imwrite(srcImg_all, crop_all);
+
+                    cv::Mat3b crop = frame(person);
+                    cv::String srcImg_person = "img/person_" + personId + "_" + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))) + ".bmp";
+                    cv::String srcImg_face = "";
+                    imwrite(srcImg_person, crop);
+                    if (!face.empty()) {
+                        cv::Mat3b crop = frame(face);
+                        srcImg_face = "img/face_" + personId + "_" + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))) + ".bmp";
+                        imwrite(srcImg_face, crop);
+                    }
+                    std::cout << "complete saving img" << std::endl;
+
+                    std::cout << "start marking log" << std::endl;
+                    // marking log. 
+                    int age_int = static_cast<int>(age_float);
+                    //inputFileStr = frameCount + "," + personId + "," + age_int + "," + gender + "\n";                    
+                    inputFileStr.append(std::to_string(frameCounting));     // frame
+                    inputFileStr.push_back(',');
+                    // ID ( person-reidentification-retail-0270 )
+                    inputFileStr.append(personId);      // id
+                    // Face detect ( age-gender-recognition-retail-0013 )
+                    inputFileStr.push_back(',');
+                    if (age_int == 0)
+                        inputFileStr.append("0");       // age(undefined)
+                    else
+                        inputFileStr.append(std::to_string(age_int));       // age
+                    inputFileStr.push_back(',');
+                    if (gender.empty())
+                        inputFileStr.append("'undefined'");   // gender (undefined)
+                    else {
+                        std::string strr = "'" + gender + "'";
+                        inputFileStr.append(strr);        // gender
+                    }
+                    // Person Attributes ( person-attributes-recognition-crossroad-0230 )
+                    inputFileStr.push_back(',');
+                    //if((face.x == 0 && face.y == 0) && (face.width == 0 && face.height == 0))
+                    inputFileStr.append(std::to_string(personAttributes[0]));        // is_male
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[1]));       // has_bag
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[2]));       // has_backpack
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[3]));       // has_hat
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[4]));       // has_longsleeves
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[5]));       // has_longpants
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[6]));       // has_longhair
+                    inputFileStr.push_back(',');
+                    inputFileStr.append(std::to_string(personAttributes[7]));       // has_coat_jacket
+                    inputFileStr.push_back(',');
+                    //img
+                    std::string img_person_src = "'C:/coding/person_detection_test/person_detection_test/img/person_" + personId + "_" + std::to_string(frameCounting) + ".bmp" + "'";
+                    inputFileStr.append(img_person_src);       // img_person
+                    inputFileStr.push_back(',');
+                    std::string img_face_src = "'C:/coding/person_detection_test/person_detection_test/img/face_" + personId + "_" + std::to_string(frameCounting) + ".bmp" + "'";
+                    inputFileStr.append(img_face_src);       // img_face
+                    inputFileStr.push_back('\n');
+
+                    videologFile.write(inputFileStr.c_str(), inputFileStr.size());      // write a log with a line(one frame) in videolog
+
+                    std::cout << "complete marking log" << std::endl;
                 }
             }
         }
 
+        std::cout << "start showing proc" << std::endl;
         for (int i = 0; i < peopleRect.size(); i++) {
             if (!peopleId[i].empty()) {
                 cv::putText(frame,
@@ -308,8 +482,35 @@ int main(int, char**)
                     cv::Scalar(0, 0, 255), 1.3);
             }
             cv::rectangle(frame, peopleRect[i], cv::Scalar(0, 0, 255), 1.5);
-            cv::circle(frame, peopleColor[i].first, 0, cv::Scalar(0, 255, 0), 5); // top color
-            cv::circle(frame, peopleColor[i].second, 0, cv::Scalar(255, 0, 0), 5); // bottom color
+            //-------------------------------색상 들어가는 곳-------------------------------//
+            std::cout << "marking start" << std::endl;
+            std::cout << i << " top coordinate: " << peopleColor_point[i].first.x << ", " << peopleColor_point[i].first.y << std::endl;
+            std::cout << i << " bottom coordinate: " << peopleColor_point[i].second.x << ", " << peopleColor_point[i].second.y << std::endl;
+            
+            //-------------------------------색상 들어가는 곳-------------------------------//
+            std::cout << "start color" << std::endl;
+            ntblue = frame.at<cv::Vec3b>(peopleColor_point[i].first.x, peopleColor_point[i].first.y)[0];
+            ntgreen = frame.at<cv::Vec3b>(peopleColor_point[i].first.x, peopleColor_point[i].first.y)[1];
+            ntred = frame.at<cv::Vec3b>(peopleColor_point[i].first.x, peopleColor_point[i].first.y)[2];
+
+            nbblue = frame.at<cv::Vec3b>(peopleColor_point[i].second.x, peopleColor_point[i].second.y)[0];
+            nbgreen = frame.at<cv::Vec3b>(peopleColor_point[i].second.x, peopleColor_point[i].second.y)[1];
+            nbred = frame.at<cv::Vec3b>(peopleColor_point[i].second.x, peopleColor_point[i].second.y)[2];
+            /*---------------------------------------------------------------------------------------------------*/
+            std::cout << "complete" << std::endl;
+            
+
+            std::cout << "=====================Comparison value======================" << std::endl;
+            std::cout << "top | my : " << cv::Scalar(ntblue, ntgreen, ntred) << ", vec3b : " << cv::Scalar(peopleColor_vec3b[i].first) <<std::endl;
+            std::cout << "bot | my : " << cv::Scalar(nbblue, nbgreen, nbred) << ", vec3b : " << cv::Scalar(peopleColor_vec3b[i].second) << std::endl;
+            std::cout << "===========================================================" << std::endl;
+            
+            
+            cv::circle(frame, peopleColor_point[i].first, 0, cv::Scalar(peopleColor_vec3b[i].first), 5); // top color
+            cv::circle(frame, peopleColor_point[i].second, 0, cv::Scalar(peopleColor_vec3b[i].second), 5); // bottom color
+            std::cout << "marking complete" << std::endl;
+                                                                                                
+            //-----------------------------------------------------------------------------//
             if (faceRect[i].x != 0 && faceRect[i].y != 0) {
                 if (ageGender[i].second == "female")
                     cv::rectangle(frame, faceRect[i], cv::Scalar(127, 0, 255), 1.5);
@@ -329,8 +530,16 @@ int main(int, char**)
         if (cv::waitKey(5) >= 0)
             break;
     }
+
+    // close videolog text file
+    videologFile.close();
+
     // the camera will be deinitialized automatically in VideoCapture destructor
     return 0;
 }
 
+
+//using opencv lib to get total video frame and time for millisecond
+//fps : 30
+//total frame : 6828
 //git branch develop master
