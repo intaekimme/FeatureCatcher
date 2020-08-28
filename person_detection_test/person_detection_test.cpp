@@ -332,3 +332,5 @@ int main(int, char**)
     // the camera will be deinitialized automatically in VideoCapture destructor
     return 0;
 }
+
+//git branch develop master
