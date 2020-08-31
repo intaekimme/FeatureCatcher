@@ -71,7 +71,7 @@ int main(int, char**)
     int apiID = cv::CAP_ANY; // 0 = autodetect default API
     // open selected camera using selected API
     // cap.open(deviceID, apiID);
-    cap.open("video_test5.mp4");
+    cap.open("video_test3.mp4");
     if (!cap.isOpened())
     {
         std::cerr << "ERROR! Unable to open camera\n";
