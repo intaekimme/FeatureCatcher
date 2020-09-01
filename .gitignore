@@ -11,8 +11,8 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-person_detection_test/x64/
-x64/
+FeatureCatcher/FeatureCatcher/x64/
+FeatureCatcher/x64/
 x86/
 bld/
 [Bb]in/
