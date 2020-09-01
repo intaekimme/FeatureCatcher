@@ -1,0 +1,3 @@
+[submodule "DBmoudle_for_oss_dev_competition"]
+	path = DBmoudle_for_oss_dev_competition
+	url = https://github.com/intaekimme/DBmoudle_for_oss_dev_competition.git
