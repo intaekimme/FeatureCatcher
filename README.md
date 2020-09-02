@@ -1,22 +1,22 @@
 # FeatureCatcher
 
-  1. [프로젝트_설명](# 1. 프로젝트_설명)
+  1. [프로젝트 설명](#1.-프로젝트-설명)
 
-  2. [개발_환경_구축_및_설치](# 2. 개발_환경_구축_및_설치)
+  2. [개발 환경 구축 및 설치](#2.-개발-환경-구축-및-설치)
 
-  3. [특징](# 3. 특징)
+  3. [특징](#3.-특징)
 
-  4. [사용법](# 4. 사용법)
+  4. [사용법](#4.-사용법)
 
-# 1. 프로젝트_설명
+# 1. 프로젝트 설명
 FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe의 모델을 사용하여 영상에서 사람과 해당 사람에 대한 특징들을 검출합니다. 특징에는 얼굴, 성별, 나이, 의상 색상이 있습니다. 검출된 특징들은 해당하는 사람 별로 DB를 구축합니다. 사용자는 웹을 통해 자신이 원하는 특징으로 영상 속에서 사람을 검색할 수 있습니다.
 
-# 2. 개발_환경_구축_및_설치
-<strong>2-1 개발 환경<strong>
+# 2. 개발 환경 구축 및 설치
+<strong>2-1 개발 환경</strong> 
   * 개발 OS는 Window 10 환경에서 진행되었습니다.
 
 
-<strong>2-2 사전 설치 프로그램<strong>
+<strong>2-2 사전 설치 프로그램</strong>
   
   * 2-2-1 [OpenCV 4.4.0](https://github.com/intaekimme/oss_dev_competition/blob/master/document/OpenCV.md)
   
@@ -24,7 +24,7 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
   
   * 2-2-3 etc...(추가적인것 있으면 넣어주고 링크로 처리)
 
-<strong>2-3 FeatureCatcher 설치<strong>
+<strong>2-3 FeatureCatcher 설치</strong>
 cmd창을 열고 설치하려는 경로로 이동합니다.
 Git으로 부터 해당 프로젝트를 다운받습니다.
 ```
