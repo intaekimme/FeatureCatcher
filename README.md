@@ -20,7 +20,7 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
   
   * 2-2-1 [OpenCV 4.4.0](https://github.com/intaekimme/oss_dev_competition/blob/master/document/OpenCV.md)
   
-  * 2-2-2 [MySQL 8.0.21](https://github.com/intaekimme/oss_dev_competition/blob/master/document/MySQL.md)
+  * 2-2-2 [MySQL(latest version)](https://github.com/intaekimme/oss_dev_competition/blob/master/document/MySQL.md)
   
   * 2-2-3 etc...(추가적인것 있으면 넣어주고 링크로 처리)
 
