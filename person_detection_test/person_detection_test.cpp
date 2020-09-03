@@ -3,17 +3,24 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 
 #include <iostream>
 #include <stdio.h>
 #include <fstream>
 #include <time.h>
 
+#include <mysql.h>
+#include <iomanip>
+#include <fstream>
+#include <string>
+#include <future>
+
 #define PROCESS_PER_FRAME 1
+#define FRAME_PER_SAVING 10
 
 std::vector<std::vector<float>> globalReIdVec;
 int frameForProcess = PROCESS_PER_FRAME;
+int framePerSaving = FRAME_PER_SAVING;
 std::array<std::string, 8> attributesString{ "is_male", "has_bag", "has_backpack", "has_hat", "has_longsleeves", "has_longpants", "has_longhair", "has_coat_jacket" };
 int frameCounting = 0;
 template <typename T>
@@ -59,11 +66,99 @@ uint findMatchingPerson(const std::vector<float>& newReIdVec) {
     return size;
 }
 
+
+//DB
+MYSQL* conn, mysql;
+MYSQL_RES* res;
+MYSQL_ROW row;
+
+int query_state;
+
+void send_select(std::string table)
+{
+    std::string qsq = "select * from " + table;
+    const char* query_state_query = qsq.c_str(); // query_state
+
+
+    // db 상태 확인
+    query_state = mysql_query(conn, query_state_query);
+    if (query_state != 0) {
+        std::cout << mysql_error(conn) << std::endl << std::endl;
+        return;
+    }
+
+    res = mysql_store_result(conn);
+    std::cout << " MySQL Tables in mysql database." << std::endl << std::endl;
+    while ((row = mysql_fetch_row(res)) != NULL) {
+        std::cout << std::left;
+        std::cout << std::setw(18) << row[0]
+            << std::setw(18) << row[1]
+            << std::setw(18) << row[2]
+            << std::setw(18) << row[3]
+            << std::setw(18) << row[4]
+            << std::setw(18) << row[5] << std::endl;
+    } // follow amount of colum.
+    std::cout << std::endl << std::endl;
+}
+
+
+void send_insert_to_db(std::string table, std::vector<std::string> columns, std::vector<std::string> values)
+{
+    //string msg = "INSERT INTO "+ table + " (frame, id, age, gender, is_male, has_bag, has_bagpack, has_hat, has_longsleeves, has_pants, has_longhair, has_coatjacket) VALUES('" + to_string(frame) + "', '" + to_string(id) + "', '" + to_string(bb_left) + "', '" + to_string(bb_top) + "', '" + to_string(bb_width) + "', '" + to_string(bb_height) + "')";
+
+    std::string msg_insert = "INSERT INTO " + table + " (";
+    for (int i = 0; i < columns.size() - 1; i++) {
+        msg_insert.append(columns[i]);
+        msg_insert.append(", ");
+    }
+    msg_insert.append(columns[columns.size() - 1]);
+    msg_insert.append(") values(");
+    for (int i = 0; i < values.size() - 1; i++) {
+        msg_insert.append(values[i]);
+        msg_insert.append(", ");
+    }
+    msg_insert.append(values[values.size() - 1]);
+    msg_insert.append(")");
+
+    std::cout << std::endl << msg_insert << std::endl;
+
+    const char* query = msg_insert.c_str(); // query_state
+    query_state = mysql_query(conn, query);
+    if (query_state != 0) {
+        std::cout << mysql_error(conn) << std::endl << std::endl;
+        return;
+    }
+}
+
+// reading text log file and send INSERT command with information of it.
+void readFile(std::string txtfile, std::string table, std::vector<std::string> columns, int columnSize)
+{
+    std::ifstream infile;
+    infile.open(txtfile.c_str());
+    if (infile.fail()) {
+        std::cout << "ERROR. Could not open file!" << std::endl;
+        return;
+    }
+    infile.seekg(0, infile.end);
+    int len = infile.tellg();
+    infile.seekg(0, infile.beg);
+    std::vector<std::string> contents;
+
+    // split and send "INSERT" command.
+    while (infile) {
+        contents.clear();
+        std::string str = "'";
+        infile >> str;
+        //str.append("'");
+        contents.push_back(str);
+        send_insert_to_db(table, columns, contents);
+    }
+}
+
 int main(int, char**)
 {
     cv::Mat frame;
     cv::VideoCapture cap;
-
     // open the default camera using default API
     // cap.open(0);
     // OR advance usage: select any API backend
@@ -71,11 +166,6 @@ int main(int, char**)
     int apiID = cv::CAP_ANY; // 0 = autodetect default API
     // open selected camera using selected API
     // cap.open(deviceID, apiID);
-
-    uchar ntblue, ntgreen, ntred, nbblue, nbgreen, nbred;
-    //ntblue = 0; ntgreen = 0; ntred = 0; nbblue = 0; nbgreen = 0; nbred = 0;
-
-
     cap.open("video_test5.mp4");
     if (!cap.isOpened())
     {
@@ -83,9 +173,8 @@ int main(int, char**)
         return -1;
     }
 
-    //what is video fps that get VideoCapture Class 
+    //video fps that get VideoCapture Class 
     double video_fps = cap.get(cv::CAP_PROP_FPS);
-
 
     std::string persondetectorConfigFile = "person-detection-0102.xml";
     std::string personDetectorFile = "person-detection-0102.bin";
@@ -117,7 +206,7 @@ int main(int, char**)
 
     std::cout << "Loading the person re-identifier...\n";
     cv::dnn::Net personIdentifier = cv::dnn::readNet(personIdentifierFile, personIdentifierConfigFile);
-    if (personDetector.empty())
+    if (personIdentifier.empty())
     {
         std::cerr << "Couldn't load the person detector!\n";
         return -2;
@@ -164,11 +253,11 @@ int main(int, char**)
     }
 
     //test print video fps and total frame
-    std::cout << "present video fps is : " << video_fps << std::endl;
+    std::cout << " present video fps is : " << video_fps << std::endl;
     std::cout << " Total Frame count : " << cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT)) << std::endl;
-    std::cout << "Frame per second : " << cvRound(cap.get(cv::CAP_PROP_FPS)) << std::endl;
-    std::cout << "Frame width : " << cvRound(cap.get(cv::CAP_PROP_FRAME_WIDTH)) << std::endl;
-    std::cout << "Frame height : " << cvRound(cap.get(cv::CAP_PROP_FRAME_HEIGHT)) << std::endl;
+    std::cout << " Frame per second : " << cvRound(cap.get(cv::CAP_PROP_FPS)) << std::endl;
+    std::cout << " Frame width : " << cvRound(cap.get(cv::CAP_PROP_FRAME_WIDTH)) << std::endl;
+    std::cout << " Frame height : " << cvRound(cap.get(cv::CAP_PROP_FRAME_HEIGHT)) << "\n" << std::endl;
 
     // open videolog text file
     std::ofstream videologFile;
@@ -188,15 +277,21 @@ int main(int, char**)
     std::vector<cv::Rect> faceRect;
     std::vector<std::pair<std::string, std::string>> ageGender;
     std::vector<std::vector<bool>> peopleAttributes;
-    std::vector<std::pair<cv::Point, cv::Point>> peopleColor_point;
-    std::vector<std::pair<cv::Vec3b, cv::Vec3b>> peopleColor_vec3b;
+    std::vector<std::pair<cv::Point, cv::Point>> peopleColor;
+    std::vector<std::pair<cv::Vec3b, cv::Vec3b>> clotheColor;
 
     while (true)
     {
         frameCounting++;
         // wait for a new frame from camera and store it into 'frame'
         cap.read(frame);
+        if (frame.empty())
+        {
+            std::cerr << "ERROR! blank frame grabbed\n";
+            break;
+        }
 
+#pragma region Put Text: frame and millisec
         //print video fps, total video frame count and present milli second in video
         cv::putText(frame,
             std::to_string(cvRound(cap.get(cv::CAP_PROP_FPS))),
@@ -226,7 +321,7 @@ int main(int, char**)
         );
 
         cv::putText(frame,
-            std::to_string(cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT))),
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT))),     // recent frame
             cv::Point(45, 50),
             cv::FONT_HERSHEY_COMPLEX,
             0.5,
@@ -235,20 +330,15 @@ int main(int, char**)
         );
 
         cv::putText(frame,
-            std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))),
+            std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))),        // millisecond
             cv::Point(165, 50),
             cv::FONT_HERSHEY_COMPLEX,
             0.5,
             cv::Scalar(0, 0, 0),
             1.3
         );
+#pragma endregion
 
-
-        if (frame.empty())
-        {
-            std::cerr << "ERROR! blank frame grabbed\n";
-            break;
-        }
 
         if (--frameForProcess == 0) {
             // 몇 프레임마다 처리할 것인지 결정
@@ -260,9 +350,8 @@ int main(int, char**)
             faceRect.clear();
             ageGender.clear();
             peopleAttributes.clear();
-            peopleColor_point.clear();
-            peopleColor_vec3b.clear();
-
+            peopleColor.clear();
+            clotheColor.clear();
 
             cv::Mat peopleDetectorInputBlob = cv::dnn::blobFromImage(frame, 0.58, cv::Size(512, 512), cv::Scalar(103.53, 116.28, 123.675));
             personDetector.setInput(peopleDetectorInputBlob, "image");
@@ -360,20 +449,16 @@ int main(int, char**)
                     int boty = static_cast<int>(*(attributesRecognizerOutputs[2].ptr<float>() + 1) * personFrame.rows + py1);
                     cv::Point2f topColor(topx, topy);
                     cv::Point2f bottomColor(botx, boty);
-
-                    cv::Vec3b top_color = frame.at<cv::Vec3b>(cv::Point(topx, topy)); // color picking
-                    cv::Vec3b bottom_color = frame.at<cv::Vec3b>(cv::Point(botx, boty)); // color picking
-
-                    std::cout << "start detecting person's dress color" << std::endl;
-                    std::cout << "top : " << topx << ", " << topy << std::endl;
-                    std::cout << "bottom : " << botx << ", " << boty << std::endl;
-                    std::cout << "complete detecting person's dress color" << std::endl;
-
                     peopleAttributes.push_back(personAttributes);
-                    peopleColor_point.push_back(std::make_pair(topColor, bottomColor));
-                    peopleColor_vec3b.push_back(std::make_pair(top_color, bottom_color));
+                    peopleColor.push_back(std::make_pair(topColor, bottomColor));
+                    /*---------------------------------------------------------------------------------------------------*/
+                    //color picker
+                    cv::Vec3b clothe_top_color = frame.at<cv::Vec3b>(cv::Point(topx, topy)); // color picking
+                    cv::Vec3b clothe_bottom_color = frame.at<cv::Vec3b>(cv::Point(botx, boty)); // color picking
+                    clotheColor.push_back(std::make_pair(clothe_top_color, clothe_bottom_color));
 
-                   
+
+
 
                     /*-----------------------------------------각 사람의 ID 감지-----------------------------------------*/
                     cv::Mat personIdentifierInputBlob = cv::dnn::blobFromImage(personFrame, 0.58, cv::Size(128, 256), cv::Scalar(103.53, 116.28, 123.675));
@@ -392,86 +477,95 @@ int main(int, char**)
                     peopleId.push_back(personId);
                     /*---------------------------------------------------------------------------------------------------*/
 
-                    std::cout << "start saving img" << std::endl;
-                    // saving image
-                    //cv::Rect roi(cv::Point2f(x1, y1), cv::Point2f(x2, y2));
-                    cv::Rect roi_all(cv::Point(0, 0), cv::Point(640, 360));
-                    cv::Mat3b crop_all = frame(roi_all);
-                    cv::String srcImg_all = "img/" + std::to_string(cvRound(cap.get(cv::CAP_PROP_FPS)))
-                        + "_"
-                        + std::to_string(cvRound(cap.get(cv::CAP_PROP_FRAME_COUNT)))
-                        + "_"
-                        + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC)))
-                        + ".bmp";
-                    cv::imwrite(srcImg_all, crop_all);
 
-                    cv::Mat3b crop = frame(person);
-                    cv::String srcImg_person = "img/person_" + personId + "_" + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))) + ".bmp";
-                    cv::String srcImg_face = "";
-                    imwrite(srcImg_person, crop);
-                    if (!face.empty()) {
-                        cv::Mat3b crop = frame(face);
-                        srcImg_face = "img/face_" + personId + "_" + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))) + ".bmp";
-                        imwrite(srcImg_face, crop);
-                    }
-                    std::cout << "complete saving img" << std::endl;
+                    ///*--------------------------------------Saving Image--------------------------------------*/
+                    //
+                    ////cv::Rect roi(cv::Point2f(x1, y1), cv::Point2f(x2, y2));
+                    //cv::Mat3b crop = frame(person);
+                    //cv::String srcImg_person = "img/person_" + personId + "_" + std::to_string(frameCounting) + ".bmp";
+                    //cv::String srcImg_face = "";
+                    //imwrite(srcImg_person, crop);
+                    //if (!face.empty()) {
+                    //    cv::Mat3b crop = frame(face);
+                    //    srcImg_face = "img/face_" + personId + "_" + std::to_string(frameCounting) + ".bmp";
+                    //    imwrite(srcImg_face, crop);
+                    //}
 
-                    std::cout << "start marking log" << std::endl;
-                    // marking log. 
-                    int age_int = static_cast<int>(age_float);
-                    //inputFileStr = frameCount + "," + personId + "," + age_int + "," + gender + "\n";                    
-                    inputFileStr.append(std::to_string(frameCounting));     // frame
-                    inputFileStr.push_back(',');
-                    // ID ( person-reidentification-retail-0270 )
-                    inputFileStr.append(personId);      // id
-                    // Face detect ( age-gender-recognition-retail-0013 )
-                    inputFileStr.push_back(',');
-                    if (age_int == 0)
-                        inputFileStr.append("0");       // age(undefined)
-                    else
-                        inputFileStr.append(std::to_string(age_int));       // age
-                    inputFileStr.push_back(',');
-                    if (gender.empty())
-                        inputFileStr.append("'undefined'");   // gender (undefined)
-                    else {
-                        std::string strr = "'" + gender + "'";
-                        inputFileStr.append(strr);        // gender
-                    }
-                    // Person Attributes ( person-attributes-recognition-crossroad-0230 )
-                    inputFileStr.push_back(',');
-                    //if((face.x == 0 && face.y == 0) && (face.width == 0 && face.height == 0))
-                    inputFileStr.append(std::to_string(personAttributes[0]));        // is_male
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[1]));       // has_bag
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[2]));       // has_backpack
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[3]));       // has_hat
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[4]));       // has_longsleeves
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[5]));       // has_longpants
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[6]));       // has_longhair
-                    inputFileStr.push_back(',');
-                    inputFileStr.append(std::to_string(personAttributes[7]));       // has_coat_jacket
-                    inputFileStr.push_back(',');
-                    //img
-                    std::string img_person_src = "'C:/coding/person_detection_test/person_detection_test/img/person_" + personId + "_" + std::to_string(frameCounting) + ".bmp" + "'";
-                    inputFileStr.append(img_person_src);       // img_person
-                    inputFileStr.push_back(',');
-                    std::string img_face_src = "'C:/coding/person_detection_test/person_detection_test/img/face_" + personId + "_" + std::to_string(frameCounting) + ".bmp" + "'";
-                    inputFileStr.append(img_face_src);       // img_face
-                    inputFileStr.push_back('\n');
 
-                    videologFile.write(inputFileStr.c_str(), inputFileStr.size());      // write a log with a line(one frame) in videolog
+                    /*-----------------------------------------Saving logs-----------------------------------------*/                  
+                    if (--framePerSaving == 0) {
+                        framePerSaving = FRAME_PER_SAVING;
 
-                    std::cout << "complete marking log" << std::endl;
-                }
-            }
-        }
+                        /*--------------------------------------Saving Image--------------------------------------*/
+                        //cv::Rect roi(cv::Point2f(x1, y1), cv::Point2f(x2, y2));
+                        cv::Mat3b crop = frame(person);
+                        cv::String srcImg_person = "C:/Bitnami/wampstack-7.4.8-0/apache2/htdocs/0902/person_img/person_" + personId + "_" + std::to_string(frameCounting) + ".bmp";
+                        cv::String srcImg_face = "";
+                        imwrite(srcImg_person, crop);
+                        if (!face.empty()) {
+                            cv::Mat3b crop = frame(face);
+                            srcImg_face = "img/face_" + personId + "_" + std::to_string(frameCounting) + ".bmp";
+                            imwrite(srcImg_face, crop);
+                        }
 
-        std::cout << "start showing proc" << std::endl;
+
+                        /*-----------------------------------------Marking a Log in a text file-----------------------------------------*/
+                        // ID ( person-reidentification-retail-0270 )
+                        inputFileStr.append(personId);                                  // id
+                        inputFileStr.push_back(',');
+                        inputFileStr.append(std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_FRAMES))));   // frame
+                        inputFileStr.push_back(',');
+                        inputFileStr.append(std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))));     // millisec
+                        // Face detect ( age-gender-recognition-retail-0013 )
+                        inputFileStr.push_back(',');
+                        int age_int = static_cast<int>(age_float);
+                        if (age_int == 0)
+                            inputFileStr.append("0");                                   // age(undefined)
+                        else
+                            inputFileStr.append(std::to_string(age_int));               // age
+                        inputFileStr.push_back(',');
+                        if (gender.empty())
+                            inputFileStr.append("'undefined'");                         // gender (undefined)
+                        else {
+                            std::string strr = "'" + gender + "'";
+                            inputFileStr.append(strr);                                  // gender
+                        }
+                        // Person Attributes ( person-attributes-recognition-crossroad-0230 )
+                        inputFileStr.push_back(',');
+                        ////if((face.x == 0 && face.y == 0) && (face.width == 0 && face.height == 0))
+                        //inputFileStr.append(std::to_string(personAttributes[0]));        // is_male
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[1]));       // has_bag
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[2]));       // has_backpack
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[3]));       // has_hat
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[4]));       // has_longsleeves
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[5]));       // has_longpants
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[6]));       // has_longhair
+                        //inputFileStr.push_back(',');
+                        //inputFileStr.append(std::to_string(personAttributes[7]));       // has_coat_jacket
+                        //inputFileStr.push_back(',');
+                        //img
+                        std::string img_person_src = "'C:/Bitnami/wampstack-7.4.8-0/apache2/htdocs/0902/person_img/person_" + personId + "_" + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))) + ".bmp" + "'";
+                        inputFileStr.append(img_person_src);                            // img_person
+                        inputFileStr.push_back(',');
+                        //std::string img_face_src = "'C:/UIW/person_detection_test/person_detection_test/img/face_" + personId + "_" + std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC))) + ".bmp" + "'";
+                        //inputFileStr.append(img_face_src);                              // img_face
+                        //inputFileStr.push_back(',');
+                        inputFileStr.append(std::to_string(clothe_top_color[0] << 16 | clothe_top_color[1] << 8 | clothe_top_color[2]));            // top_color
+                        inputFileStr.push_back(',');
+                        inputFileStr.append(std::to_string(clothe_bottom_color[0] << 16 | clothe_bottom_color[1] << 8 | clothe_bottom_color[2]));   // bottom_color
+                        inputFileStr.push_back('\n');
+                        videologFile.write(inputFileStr.c_str(), inputFileStr.size());      // write a log with a line(one frame) in videolog.txt
+                    }// Saving logs
+                }// 정확도 > 0.7
+            }// for문에서 감지한 각 사람마다 처리
+        }// FRAMEFORPROCESS
+
         for (int i = 0; i < peopleRect.size(); i++) {
             if (!peopleId[i].empty()) {
                 cv::putText(frame,
@@ -482,35 +576,8 @@ int main(int, char**)
                     cv::Scalar(0, 0, 255), 1.3);
             }
             cv::rectangle(frame, peopleRect[i], cv::Scalar(0, 0, 255), 1.5);
-            //-------------------------------색상 들어가는 곳-------------------------------//
-            std::cout << "marking start" << std::endl;
-            std::cout << i << " top coordinate: " << peopleColor_point[i].first.x << ", " << peopleColor_point[i].first.y << std::endl;
-            std::cout << i << " bottom coordinate: " << peopleColor_point[i].second.x << ", " << peopleColor_point[i].second.y << std::endl;
-            
-            //-------------------------------색상 들어가는 곳-------------------------------//
-            std::cout << "start color" << std::endl;
-            ntblue = frame.at<cv::Vec3b>(peopleColor_point[i].first.x, peopleColor_point[i].first.y)[0];
-            ntgreen = frame.at<cv::Vec3b>(peopleColor_point[i].first.x, peopleColor_point[i].first.y)[1];
-            ntred = frame.at<cv::Vec3b>(peopleColor_point[i].first.x, peopleColor_point[i].first.y)[2];
-
-            nbblue = frame.at<cv::Vec3b>(peopleColor_point[i].second.x, peopleColor_point[i].second.y)[0];
-            nbgreen = frame.at<cv::Vec3b>(peopleColor_point[i].second.x, peopleColor_point[i].second.y)[1];
-            nbred = frame.at<cv::Vec3b>(peopleColor_point[i].second.x, peopleColor_point[i].second.y)[2];
-            /*---------------------------------------------------------------------------------------------------*/
-            std::cout << "complete" << std::endl;
-            
-
-            std::cout << "=====================Comparison value======================" << std::endl;
-            std::cout << "top | my : " << cv::Scalar(ntblue, ntgreen, ntred) << ", vec3b : " << cv::Scalar(peopleColor_vec3b[i].first) <<std::endl;
-            std::cout << "bot | my : " << cv::Scalar(nbblue, nbgreen, nbred) << ", vec3b : " << cv::Scalar(peopleColor_vec3b[i].second) << std::endl;
-            std::cout << "===========================================================" << std::endl;
-            
-            
-            cv::circle(frame, peopleColor_point[i].first, 0, cv::Scalar(peopleColor_vec3b[i].first), 5); // top color
-            cv::circle(frame, peopleColor_point[i].second, 0, cv::Scalar(peopleColor_vec3b[i].second), 5); // bottom color
-            std::cout << "marking complete" << std::endl;
-                                                                                                
-            //-----------------------------------------------------------------------------//
+            cv::circle(frame, peopleColor[i].first, 0, cv::Scalar(clotheColor[i].first), 20); // top color
+            cv::circle(frame, peopleColor[i].second, 0, cv::Scalar(clotheColor[i].second), 20); // bottom color
             if (faceRect[i].x != 0 && faceRect[i].y != 0) {
                 if (ageGender[i].second == "female")
                     cv::rectangle(frame, faceRect[i], cv::Scalar(127, 0, 255), 1.5);
@@ -535,11 +602,59 @@ int main(int, char**)
     videologFile.close();
 
     // the camera will be deinitialized automatically in VideoCapture destructor
+
+
+
+    //----------------------------DB------------------------------------
+    // connect mysql
+    const char* server = "localhost";
+    const char* user = "root";
+    const char* password = "1111";
+    const char* database = "video_detector";
+    std::cout << mysql_get_client_info();
+
+    const char* query_state_query = "select * from table_videoanalyzing"; // query_state
+
+    // db 연결 및 에러확인
+    mysql_init(&mysql);
+    conn = mysql_real_connect(&mysql, server, user, password, database, 3306, 0, 0);
+    if (conn == NULL) {
+        std::cout << mysql_error(&mysql) << std::endl << std::endl;
+        return 1;
+    }
+
+    // 비동기
+    //future<void> check = std::async(launch::async, signal_cheking);
+
+    // set colums
+    std::vector<std::string> columns;
+    columns.push_back("id");				//1: id
+    columns.push_back("frame");				//2: frame
+    columns.push_back("millisec");			//3: millisec
+    columns.push_back("age");
+    columns.push_back("gender");
+    //columns.push_back("is_male");
+    //columns.push_back("has_bag");
+    //columns.push_back("has_backpack");
+    //columns.push_back("has_hat");
+    //columns.push_back("has_longsleeves");	//10: has_longsleeves
+    //columns.push_back("has_longpants");
+    //columns.push_back("has_longhair");
+    //columns.push_back("has_coatjacket");
+    columns.push_back("img_person");
+    /*columns.push_back("img_face");*/
+    columns.push_back("top_color");
+    columns.push_back("bottom_color");		//17: bottom_color
+
+    // txtfile -> mysql
+    readFile("videolog.txt", "table_videoanalyzing", columns, 8);
+
+
+    mysql_free_result(res);
+    mysql_close(conn);
+    std::cout << "done" << std::endl;
+
+
+
     return 0;
 }
-
-
-//using opencv lib to get total video frame and time for millisecond
-//fps : 30
-//total frame : 6828
-//git branch develop master
