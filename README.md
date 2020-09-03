@@ -35,6 +35,8 @@ $ cd 설치 경로
 $ git clone https://github.com/intaekimme/oss_dev_competition.git
 ```
 
+<strong>2-4 [환경 설정](/document/Environment_setting.md)</strong>
+
 # 3. 특징
 해당 프로그램은 영상을 분석하여 영상에 출현한 사람들에 다양한 특징들을 뽑아내고 DB에 저장, 웹 UI를 통해 분석 내용을 확인하는 것을 목적으로 합니다.
 
