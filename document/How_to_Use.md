@@ -96,14 +96,13 @@ opencv_videoio440.lib
 ## 3. 프로젝트 속성 설정(Debug)
 Debug 환경의 경우 Release와 설정 방법이 유사합니다. 다른 항목의 번호는 다음과 같습니다.
 
-2. Release 에서 Debug로 설정 해줍니다.
+* 2번 Release 에서 Debug로 설정 해줍니다.
 
-4. C:\"OpenCV 4.4.0-OpenVINO 라이브러리 포함 Debug 버전 설치경로"\opencv\build\include 로 설정해줍니다. 
+* 4번 C:\"OpenCV 4.4.0-OpenVINO 라이브러리 포함 Debug 버전 설치경로"\opencv\build\include 로 설정해줍니다. 
 
-7. C:\(OpenCV 4.4.0-OpenVINO 라이브러리 포함 Debug 버전 설치경로)\opencv\build\lib 로 설정해줍니다.
+* 7번 C:\(OpenCV 4.4.0-OpenVINO 라이브러리 포함 Debug 버전 설치경로)\opencv\build\lib 로 설정해줍니다.
 
-9. 
-OpenCV 관련 lib만 아래로 입력합니다.
+* 9번 OpenCV 관련 lib만 아래로 입력합니다.
 ```
 opencv_calib3d440d.lib
 opencv_core440d.lib
