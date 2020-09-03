@@ -84,24 +84,32 @@ void VideoInspector::clearVars() {
 	clothesColor.clear();
 }
 
-int VideoInspector::process(cv::Mat& frame) {
+void VideoInspector::setFramePerSaving(int frame_per_saving)
+{
+	VideoInspector::framePerSaving = frame_per_saving;
+}
+
+int VideoInspector::process(cv::Mat& frame, DataManager& dataManager, std::string frameCount, std::string millisec, std::string yourWebServerPath, int &framePerSaving) {
 	clearVars();
 	detectPeople(frame);
-
-	for (int i = 0; i < people.size(); i++)
+	
+	for (int i = 0; i < people.size(); i++)		// frame 당 people 수 만큼 반복.
 	{
 		cv::Mat personFrame = frame(people[i]); // 사람 이미지 따로 복사
 
-		detectFace(frame, people[i]);
-		recognizeAgeGender(frame, faces[i]);
-		findColor(personFrame, people[i]);
-		identifyPeople(personFrame);
+		detectFace(frame, people[i]);			// set faces
+		recognizeAgeGender(frame, faces[i]);	// set ageGender(pair)
+		findColor(personFrame, people[i]);		// set topColor, bottomColor, clothesColor(pair)
+		identifyPeople(personFrame);			// set peopleId
 
-		//db 관련 함수 호출
-		//image 저장
-		//log 저장
-		
-		
+		//DB 관련 함수 호출
+		if (--framePerSaving == 0) {
+			framePerSaving = VideoInspector::framePerSaving;
+			//image 저장
+			dataManager.savePersonImg(frame, peopleId[i], millisec, people[i], yourWebServerPath);
+			//log 저장
+			dataManager.saveLog(peopleId[i], frameCount, millisec, ageGender[i].first, ageGender[i].second, yourWebServerPath, clothesColor[i].first, clothesColor[i].second);
+		}	
 	}
 	return 0;
 }
