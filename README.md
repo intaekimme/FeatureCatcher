@@ -44,6 +44,6 @@ $ git clone https://github.com/intaekimme/oss_dev_competition.git
 
 - 웹 UI
 
-<img src="/document/feature.jpg" width="70%" height="700%" title="특징" alt="Feature"></img>
+<img src="/document/feature.jpg" width="100%" height="100%" title="특징" alt="Feature"></img>
 
 # 4. 사용법
