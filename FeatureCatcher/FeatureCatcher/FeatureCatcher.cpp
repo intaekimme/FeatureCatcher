@@ -4,7 +4,7 @@
 
 
 FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval, std::string logFileName, std::string yourWebServerPath, 
-    std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table, int framePerSaving)
+    std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table, int framePerSaving, bool visualizing)
 {
     // open video file.
     cap.open(videoName);
@@ -26,6 +26,9 @@ FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval, std
     // 몇 프레임 당 프로세스를 처리할 것인지 설정.
     this->processInterval = processInterval;
     frameForProcess = 1;
+
+    // 그림 표시
+    this->visualizing = visualizing;
 
     // Web Server Path 설정.
     FeatureCatcher::yourWebServerPath = yourWebServerPath;
@@ -56,9 +59,10 @@ int FeatureCatcher::process() {
             millisec = std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_MSEC)));       //set millisec.
             frameCount = std::to_string(cvRound(cap.get(cv::CAP_PROP_POS_FRAMES)));     // set frame count.
             m_videoInspector->process(frame, *m_dataManager, frameCount, millisec, yourWebServerPath, framePerSaving);
-            
         }
 
+        if (this->visualizing)
+            m_videoInspector->visualize(frame);
         cv::imshow("Live", frame);
         if (cv::waitKey(5) >= 0)
             break;

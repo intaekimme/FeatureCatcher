@@ -86,7 +86,7 @@ void VideoInspector::clearVars() {
 
 void VideoInspector::setFramePerSaving(int frame_per_saving)
 {
-	VideoInspector::framePerSaving = frame_per_saving;
+	this->framePerSaving = frame_per_saving;
 }
 
 int VideoInspector::process(cv::Mat& frame, DataManager& dataManager, std::string frameCount, std::string millisec, std::string yourWebServerPath, int &framePerSaving) {
@@ -97,14 +97,14 @@ int VideoInspector::process(cv::Mat& frame, DataManager& dataManager, std::strin
 	{
 		cv::Mat personFrame = frame(people[i]); // 사람 이미지 따로 복사
 
-		detectFace(frame, people[i]);			// set faces
+		detectFace(personFrame, people[i]);			// set faces
 		recognizeAgeGender(frame, faces[i]);	// set ageGender(pair)
 		findColor(personFrame, people[i]);		// set topColor, bottomColor, clothesColor(pair)
 		identifyPeople(personFrame);			// set peopleId
 
 		//DB 관련 함수 호출
 		if (--framePerSaving == 0) {
-			framePerSaving = VideoInspector::framePerSaving;
+			framePerSaving = this->framePerSaving;
 			//image 저장
 			dataManager.savePersonImg(frame, peopleId[i], millisec, people[i], yourWebServerPath);
 			//log 저장
@@ -279,4 +279,32 @@ uint VideoInspector::findMatchingPerson(const std::vector<float>& newReIdVec) {
 	}
 	globalReIdVec.push_back(newReIdVec);
 	return size;
+}
+
+void VideoInspector::visualize(cv::Mat& frame) {
+	for (int i = 0; i < people.size(); i++) {
+		if (!peopleId[i].empty()) {
+			cv::putText(frame,
+				peopleId[i],
+				cv::Point2f(static_cast<float>(people[i].x), static_cast<float>(people[i].y + 30)),
+				cv::FONT_HERSHEY_COMPLEX,
+				0.5,
+				cv::Scalar(0, 0, 255), 1.3);
+		}
+		cv::rectangle(frame, people[i], cv::Scalar(0, 0, 255), 1.5);
+		cv::circle(frame, clothesPoint[i].first, 0, cv::Scalar(clothesColor[i].first), 20); // top color
+		cv::circle(frame, clothesPoint[i].second, 0, cv::Scalar(clothesColor[i].second), 20); // bottom color
+		if (faces[i].x != 0 && faces[i].y != 0) {
+			if (ageGender[i].second == "female")
+				cv::rectangle(frame, faces[i], cv::Scalar(127, 0, 255), 1.5);
+			else
+				cv::rectangle(frame, faces[i], cv::Scalar(255, 84, 0), 1.5);
+			cv::putText(frame,
+				ageGender[i].first,
+				cv::Point2f(static_cast<float>(faces[i].x), static_cast<float>(faces[i].y + faces[i].height + 30)),
+				cv::FONT_HERSHEY_COMPLEX,
+				0.5,
+				cv::Scalar(0, 255, 0), 1.3);
+		}
+	}
 }

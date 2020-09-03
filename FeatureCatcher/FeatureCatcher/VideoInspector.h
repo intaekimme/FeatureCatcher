@@ -4,6 +4,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <iostream>
 #include <stdio.h>
@@ -19,16 +20,19 @@ public:
 
 	int loadModels();
 	int process(cv::Mat& frame, DataManager& dataManager, std::string frameCount, std::string millisec, std::string yourWebServerPath, int& framePerSaving);
+	void visualize(cv::Mat& frame);
 	
+	void setFramePerSaving(int frame_per_saving);
+
 private:
 	void clearVars();
 
-	int detectPeople(cv::Mat& frame4);
+	int detectPeople(cv::Mat& frame);
 	int detectFace(cv::Mat& personFrame, cv::Rect person);
 	int recognizeAgeGender(cv::Mat& frame, cv::Rect face);
 
 	int findColor(cv::Mat& personFrame, cv::Rect person);
-	int identifyPeople(cv::Mat& personframe);	
+	int identifyPeople(cv::Mat& personframe);
 
 	std::vector<std::vector<float>> globalReIdVec;
 
@@ -42,17 +46,13 @@ private:
 	cv::dnn::Net attributesRecognizer;
 	cv::dnn::Net ageGenderRecognizer;
 
-	DataManager* m_dataManager;
 	int framePerSaving;
 
 public:
-	void setFramePerSaving(int frame_per_saving);
-
 	std::vector<cv::Rect> people;
 	std::vector<cv::Rect> faces;
 	std::vector<std::pair<std::string, std::string>> ageGender;
 	std::vector<std::string> peopleId;
 	std::vector<std::pair<cv::Point, cv::Point>> clothesPoint;
-	std::vector<std::pair<cv::Vec3b, cv::Vec3b>> clothesColor;	
-	
+	std::vector<std::pair<cv::Vec3b, cv::Vec3b>> clothesColor;
 };
