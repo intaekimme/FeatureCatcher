@@ -18,8 +18,7 @@ int DataManager::savePersonImg(cv::Mat frame, std::string personId, std::string 
         //cv::String srcImg_person = yourWebServerPath + "/img_person/person_" + personId + "_" + millisec + ".bmp";
         cv::String srcImg_person = "";
         srcImg_person.append(yourWebServerPath);
-        srcImg_person.append("/person_img/person_");
-        
+        srcImg_person.append("/person_img/person_");        
         srcImg_person.append(personId);
         srcImg_person.append("_");
         srcImg_person.append(millisec);
@@ -62,7 +61,8 @@ int DataManager::saveLog(std::string personId, std::string frameCount, std::stri
     // Person Attributes ( person-attributes-recognition-crossroad-0230 )
     inputFileStr.push_back(',');
     //img
-    std::string img_person_src = "'" + yourWebServerPath + "/person_" + personId + "_" + millisec + ".bmp'";
+    //std::string img_person_src = "'" + yourWebServerPath + "/person_" + personId + "_" + millisec + ".bmp'";
+    std::string img_person_src = "'./person_img/person_" + personId + "_" + millisec + ".bmp'";
     inputFileStr.append(img_person_src);                            // img_person
     inputFileStr.push_back(',');
     inputFileStr.append(std::to_string(clothe_top_color[0] << 16 | clothe_top_color[1] << 8 | clothe_top_color[2]));            // top_color
