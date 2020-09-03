@@ -104,7 +104,7 @@ Debug 환경의 경우 Release와 설정 방법이 유사합니다. 다른 항�
 
 9. 
 OpenCV 관련 lib만 아래로 입력합니다.
-
+```
 opencv_calib3d440d.lib
 opencv_core440d.lib
 opencv_dnn440d.lib
@@ -120,3 +120,4 @@ opencv_photo440d.lib
 opencv_stitching440d.lib
 opencv_video440d.lib
 opencv_videoio440d.lib
+```
