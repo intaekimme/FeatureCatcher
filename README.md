@@ -18,9 +18,12 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
 
 <strong>2-2 사전 설치 프로그램</strong>
   
-  * 2-2-1 [OpenCV 4.4.0](https://github.com/intaekimme/oss_dev_competition/blob/master/document/OpenCV.md)
-  
-  * 2-2-2 [MySQL(latest version)](https://github.com/intaekimme/oss_dev_competition/blob/master/document/MySQL.md)
+  * 2-2-1 [OpenCV 4.4.0-OpenVINO 라이브러리 포함](https://github.com/opencv/opencv/releases/tag/4.4.0)
+    * Debug용 : opencv-4.4.0-dldt-2020.4-vc16-avx2-debug.7z
+    * Release용 : opencv-4.4.0-dldt-2020.4-vc16-avx2.7z
+
+  * 2-2-2 [MySQL(8.0.21)](https://dev.mysql.com/downloads/installer/)
+    * 자세한 설치 방법은 [이](https://dog-developers.tistory.com/20) 링크로 확인하시면 됩니다.
   
   * 2-2-3 etc...(추가적인것 있으면 넣어주고 링크로 처리)
 
@@ -33,7 +36,14 @@ $ git clone https://github.com/intaekimme/oss_dev_competition.git
 ```
 
 # 3. 특징
+해당 프로그램은 영상을 분석하여 영상에 출현한 사람들에 다양한 특징들을 뽑아내고 DB에 저장, 웹 UI를 통해 분석 내용을 확인하는 것을 목적으로 합니다.
+
+- Feture Extraction을 위한 계층 구조
+
+- DB 구성
+
+- 웹 UI
+
+<img src="/document/feature.jpg" width="40%" height="30%" title="특징" alt="Feature"></img>
 
 # 4. 사용법
-분석을 원하는 영상을 FeatureCatcher 경로 안에 넣어줍니다.
-이후 FeatureCatcher.exe를 실행
