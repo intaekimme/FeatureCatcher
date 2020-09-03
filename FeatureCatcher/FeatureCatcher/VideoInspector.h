@@ -18,17 +18,17 @@ public:
 	~VideoInspector();
 
 	int loadModels();
-	int process(cv::Mat& frame); 
+	int process(cv::Mat& frame, DataManager& dataManager, std::string frameCount, std::string millisec, std::string yourWebServerPath, int& framePerSaving);
 	
 private:
 	void clearVars();
 
-	int detectPeople(cv::Mat& frame);
+	int detectPeople(cv::Mat& frame4);
 	int detectFace(cv::Mat& personFrame, cv::Rect person);
 	int recognizeAgeGender(cv::Mat& frame, cv::Rect face);
 
 	int findColor(cv::Mat& personFrame, cv::Rect person);
-	int identifyPeople(cv::Mat& personframe);
+	int identifyPeople(cv::Mat& personframe);	
 
 	std::vector<std::vector<float>> globalReIdVec;
 
@@ -43,15 +43,16 @@ private:
 	cv::dnn::Net ageGenderRecognizer;
 
 	DataManager* m_dataManager;
-	
+	int framePerSaving;
 
 public:
+	void setFramePerSaving(int frame_per_saving);
+
 	std::vector<cv::Rect> people;
 	std::vector<cv::Rect> faces;
 	std::vector<std::pair<std::string, std::string>> ageGender;
 	std::vector<std::string> peopleId;
 	std::vector<std::pair<cv::Point, cv::Point>> clothesPoint;
-	std::vector<std::pair<cv::Vec3b, cv::Vec3b>> clothesColor;
-
+	std::vector<std::pair<cv::Vec3b, cv::Vec3b>> clothesColor;	
 	
 };
