@@ -30,10 +30,11 @@ private:
 	std::string table;
 
 	int framePerSaving;
+	bool visualizing;
 
 public:
 	FeatureCatcher(std::string videoName, short processInterval, std::string logFileName, std::string yourWebServerPath, 
-		std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table, int framePerSaving);
+		std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table, int framePerSaving, bool visualzing);
 	int process();
 	void setInfo_DB(std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table);
 	
