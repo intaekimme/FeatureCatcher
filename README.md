@@ -24,8 +24,6 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
 
   * 2-2-2 [MySQL(8.0.21)](https://dev.mysql.com/downloads/installer/)
     * 자세한 설치 방법은 [이](https://dog-developers.tistory.com/20) 링크로 확인하시면 됩니다.
-  
-  * 2-2-3 etc...(추가적인것 있으면 넣어주고 링크로 처리)
 
 <strong>2-3 FeatureCatcher 설치</strong>
 cmd창을 열고 설치하려는 경로로 이동합니다.
@@ -39,11 +37,14 @@ $ git clone https://github.com/intaekimme/oss_dev_competition.git
 해당 프로그램은 영상을 분석하여 영상에 출현한 사람들에 다양한 특징들을 뽑아내고 DB에 저장, 웹 UI를 통해 분석 내용을 확인하는 것을 목적으로 합니다.
 
 - Feture Extraction을 위한 계층 구조
+  먼저 영상 내의 개별 frame에서 pre-trained 된 모델로 사람을 감지합니다. 이 후 감지된 사람별로 ID 감지, 상하의 색상 감지, 얼굴 감지 모델을 적용 시킵니다. 얼굴 감지 모델의 경우에는 하위로 나이, 성별 감지 모델을 적용시킵니다. 
 
 - DB 구성
+  위에서 검출된 데이터를 가지고 구축된 DB에 데이터를 입력해줍니다.
 
 - 웹 UI
+  웹 UI는 아직 미완성입니다. 
 
 <img src="/document/feature.jpg" width="100%" height="100%" title="특징" alt="Feature"></img>
 
-# 4. 사용법
+# [4. 사용법](/document/How_to_Use.md)
