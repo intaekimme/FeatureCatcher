@@ -73,3 +73,6 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+
+# VS code C/C++ configure file
+.vscode
