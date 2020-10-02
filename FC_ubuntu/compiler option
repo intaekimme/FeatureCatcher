@@ -1,0 +1,1 @@
+g++ -o featurecatcher -Iinclude main.cpp src/FeatureCatcher.cpp src/VideoInspector.cpp `pkg-config --libs --cflags opencv4`
