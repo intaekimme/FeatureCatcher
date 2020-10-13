@@ -15,7 +15,7 @@ FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval,
     }
 
     // VideoInspector Object 생성.
-    m_videoInspector = new VideoInspector();
+    m_videoInspector = new VideoInspector(3);
     m_videoInspector->loadModels();
 
     // DataManager Object 생성.
