@@ -18,7 +18,6 @@ VideoInspector::VideoInspector(int threadNum = 5) {
 }
 
 VideoInspector::~VideoInspector() {}
-
 // Loading OpenVINO Models
 int VideoInspector::loadModels() {
     personDetector = std::make_unique<cv::dnn::Net>(cv::dnn::readNet(personDetectorFile, persondetectorConfigFile, "dldt"));
@@ -96,7 +95,7 @@ void VideoInspector::processOnePerson(cv::Mat& frame, int idx) {
     identifyPeople(personFrame, idx);                  // set peopleId
 }
 
-int VideoInspector::process(cv::Mat& frame,  // DataManager& dataManager,
+int VideoInspector::process(cv::Mat& frame,   DataManager& dataManager,
                             std::string frameCount, std::string millisec,
                             std::string yourWebServerPath,
                             int& framePerSaving) {
@@ -109,25 +108,26 @@ int VideoInspector::process(cv::Mat& frame,  // DataManager& dataManager,
         futures.emplace_back(pool->EnqueueJob([&, i] { processOnePerson(frame, i); }));
         // pool->EnqueueJob([&] { processOnePerson(frame, i); });
         // DB ���� �Լ� ȣ��
-        if (--framePerSaving == 0) {
-            framePerSaving = this->framePerSaving;
-            /*
-            // image ����
-            dataManager.savePersonImg(frame, peopleId[i], millisec, people[i],
-                                      yourWebServerPath);
-            // log ����
-            dataManager.saveLog(peopleId[i], frameCount, millisec,
-                                ageGender[i].first, ageGender[i].second,
-                                yourWebServerPath, clothesColor[i].first,
-                                clothesColor[i].second);
-            */
-        }
+
     }
     for (auto& f : futures) {
         try {
             f.get();
         } catch (const std::exception& e) {
             std::cerr << e.what() << '\n';
+        }
+    }
+    if (--framePerSaving == 0) {
+        framePerSaving = this->framePerSaving;
+        for (int i = 0; i < people.size(); i++) {
+            dataManager.savePersonImg(frame, peopleId[i], millisec, people[i],
+                                      yourWebServerPath);
+            // log ����
+            // table name input!!!
+            dataManager.log_to_DB(dataManager.getTableName(), peopleId[i], frameCount, millisec,
+                                ageGender[i].first, ageGender[i].second,
+                                yourWebServerPath, clothesColor[i].first,
+                                clothesColor[i].second);
         }
     }
     return 0;

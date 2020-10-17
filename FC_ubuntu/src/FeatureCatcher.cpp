@@ -1,8 +1,8 @@
 ﻿// FeatureCatcher.cpp
 #include "FeatureCatcher.h"
 
+//video name, processInterval, yourWebServerPath, MySQL server, MySQL port, MySQL user, MySQL pw, MySQL database name, MySQL table name, framePerSaving, visualizing data on video
 FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval,
-                               std::string logFileName,
                                std::string yourWebServerPath,
                                std::string server, unsigned int port,
                                std::string user, std::string pw,
@@ -19,10 +19,12 @@ FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval,
     m_videoInspector->loadModels();
 
     // DataManager Object 생성.
-    // m_dataManager = new DataManager();
-    FeatureCatcher::logFileName = logFileName;
+    m_dataManager = new DataManager();
+
+        // !!set table name!! //
     setInfo_DB(server, port, user, pw, database, table);
     FeatureCatcher::framePerSaving = framePerSaving;
+
 
     // 몇 프레임 당 프로세스를 처리할 것인지 설정.
     this->processInterval = processInterval;
@@ -58,7 +60,7 @@ int FeatureCatcher::process() {
                 cvRound(cap.get(cv::CAP_PROP_POS_MSEC)));  // set millisec.
             frameCount = std::to_string(
                 cvRound(cap.get(cv::CAP_PROP_POS_FRAMES)));  // set frame count.
-            m_videoInspector->process(frame,                 // *m_dataManager,
+            m_videoInspector->process(frame,                  *m_dataManager,
                                       frameCount, millisec, yourWebServerPath,
                                       framePerSaving);
         }
@@ -73,6 +75,9 @@ int FeatureCatcher::process() {
     // user,
     //                           pw, database, table);
 
+    //close DB
+    m_dataManager->CloseDB();
+    
     return 0;
 }
 
@@ -86,5 +91,13 @@ void FeatureCatcher::setInfo_DB(std::string server, unsigned int port,
     FeatureCatcher::database = database;
     FeatureCatcher::table = table;
 
-    // m_dataManager->setInfo_DB(server, port, user, pw, database, table);
+    // set DB Info 
+    m_dataManager->setInfo_DB(server, port, user, pw, database, table);
+
+    // connect to DB(MySQL)
+    m_dataManager->ConnectDB(server, port, user, pw, database);
+
+    // create a table according to the parameter 'table'
+    m_dataManager->createTable(table);
+
 }
