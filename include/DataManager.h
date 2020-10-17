@@ -1,7 +1,6 @@
 #ifndef DATAMANAGER_H
 #define DATAMANAGER_H
 
-#include "/usr/include/mysql/mysql.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -11,6 +10,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <mysql.h>
 
 
 class DataManager {

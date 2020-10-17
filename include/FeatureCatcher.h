@@ -2,7 +2,6 @@
 #define FEATURECATCHER_H
 
 #include "VideoInspector.h"
-//#include "DataManager.h"
 
 class FeatureCatcher {
 public:
