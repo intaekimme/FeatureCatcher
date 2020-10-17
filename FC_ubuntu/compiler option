@@ -1,1 +1,1 @@
-g++ -o featurecatcher -Iinclude src/main.cpp src/FeatureCatcher.cpp src/VideoInspector.cpp `pkg-config --libs --cflags opencv4` -lpthread
+g++ -o featurecatcher -Iinclude src/main.cpp src/FeatureCatcher.cpp src/VideoInspector.cpp src/DataManager.cpp /usr/lib/x86_64-linux-gnu/libmysqlclient.so `pkg-config --libs --cflags opencv4` -lpthread

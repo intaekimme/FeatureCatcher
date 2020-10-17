@@ -2,7 +2,7 @@
 #define FEATURECATCHER_H
 
 #include "VideoInspector.h"
-// #include "DataManager.h"
+//#include "DataManager.h"
 
 class FeatureCatcher {
 public:
@@ -14,13 +14,12 @@ private:
     cv::VideoCapture cap;
     short frameForProcess;
     short processInterval;  //����
-    std::string logFileName;
     std::string frameCount;
     std::string millisec;
     std::string yourWebServerPath;
 
     VideoInspector* m_videoInspector;
-    // DataManager* m_dataManager;
+    DataManager* m_dataManager;
 
     // DB info
     std::string server;
@@ -34,8 +33,8 @@ private:
     bool visualizing;
 
 public:
-    FeatureCatcher(std::string videoName, short processInterval,
-                   std::string logFileName, std::string yourWebServerPath,
+    //video name, processInterval, yourWebServerPath, MySQL server, MySQL port, MySQL user, MySQL pw, MySQL database name, MySQL table name, framePerSaving, visualizing data on video
+    FeatureCatcher(std::string videoName, short processInterval, std::string yourWebServerPath,
                    std::string server, unsigned int port, std::string user,
                    std::string pw, std::string database, std::string table,
                    int framePerSaving, bool visualzing);

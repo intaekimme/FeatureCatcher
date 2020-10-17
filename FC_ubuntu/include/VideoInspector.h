@@ -10,6 +10,7 @@
 #include <opencv2/videoio.hpp>
 
 #include "ThreadPool.h"
+#include "DataManager.h"
 
 class VideoInspector {
 public:
@@ -17,7 +18,7 @@ public:
     ~VideoInspector();
 
     int loadModels();
-    int process(cv::Mat& frame,  // DataManager& dataManager,
+    int process(cv::Mat& frame,   DataManager& dataManager,
                 std::string frameCount, std::string millisec,
                 std::string yourWebServerPath, int& framePerSaving);
     void visualize(cv::Mat& frame);
