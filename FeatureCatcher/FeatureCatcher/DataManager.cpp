@@ -75,7 +75,7 @@ int DataManager::saveLog(std::string personId, std::string frameCount, std::stri
 }
 
 // open txt log file.
-int DataManager::openLogFile(std::string logFileName)
+/*int DataManager::openLogFile(std::string logFileName)
 {
     // open videolog text file
     videologFile.open(logFileName);
@@ -87,7 +87,7 @@ int DataManager::openLogFile(std::string logFileName)
     else {
         std::cout << "Done opening the videolog text file\n\n";
     }
-}
+}*/
 
 
 /// DB
@@ -130,10 +130,10 @@ void DataManager::send_insert_to_db(std::string table, std::vector<std::string> 
 }
 
 // reading text log file and send INSERT command with information of it.
-void DataManager::readFile(std::string txtfile, std::string table, std::vector<std::string> columns, int columnSize)
+void DataManager::readFile(std::string table, std::vector<std::string> columns, int columnSize)
 {
     std::ifstream infile;
-    infile.open(txtfile.c_str());
+    //infile.open(txtfile.c_str());
     if (infile.fail()) {
         std::cout << "ERROR. Could not open file!" << std::endl;
         return;
@@ -155,22 +155,9 @@ void DataManager::readFile(std::string txtfile, std::string table, std::vector<s
 }
 
 // save log to DB
-int DataManager::saveLog2DB(std::string logFileName, std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table)
+int DataManager::saveLog2DB(std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table)
 {
-    // connect mysql
-    std::cout << mysql_get_client_info();
-
-    const char* query_state_query = "select * from table_videoanalyzing"; // query_state
-
-    // db ¿¬°á ¹× ¿¡·¯È®ÀÎ
-    mysql_init(&mysql);
-    conn = mysql_real_connect(&mysql, server.c_str(), user.c_str(), pw.c_str(), database.c_str(), port, 0, 0);
-    if (conn == NULL) {
-        std::cout << mysql_error(&mysql) << std::endl << std::endl;
-        return 1;
-    }
-
-    // ºñµ¿±â
+    // ï¿½ñµ¿±ï¿½
     //future<void> check = std::async(launch::async, signal_cheking);
 
     // set colums
@@ -194,10 +181,77 @@ int DataManager::saveLog2DB(std::string logFileName, std::string server, unsigne
     columns.push_back("bottom_color");		//17: bottom_color
 
     // txtfile -> mysql
-    readFile(logFileName, table, columns, 8);
-
-    mysql_free_result(res);
-    mysql_close(conn);
-    std::cout << "saveLog2DB done" << std::endl;
+    readFile(table, columns, 8);
 }
 
+int DataManager::ConnectDB(std::string server, unsigned int port, std::string user, std::string pw, std::string database){
+    // connect mysql
+    std::cout << mysql_get_client_info();
+
+    const char* query_state_query = "select * from table_videoanalyzing"; // query_state
+
+    // db ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È®ï¿½ï¿½
+    mysql_init(&mysql);
+    conn = mysql_real_connect(&mysql, server.c_str(), user.c_str(), pw.c_str(), database.c_str(), port, 0, 0);
+    if (conn == NULL) {
+        std::cout << mysql_error(&mysql) << std::endl << std::endl;
+        return 1;
+    }
+    return 0;
+}
+
+int DataManager::CloseDB(){
+    mysql_free_result(res);
+    mysql_close(conn);
+    
+    std::cout << "saveLog2DB done" << std::endl;
+
+    return 0;
+}
+
+int DataManager::log_to_DB(std::string table, std::string personId, std::string frameCount, std::string millisec, std::string age, 
+    std::string gender, std::string yourWebServerPath, cv::Vec3b clothe_top_color, cv::Vec3b clothe_bottom_color){
+
+    std::string msg_insert = "INSERT INTO " + table + " (";
+    // table colums 
+    msg_insert.append("id, frame, millisec, age, gender, img_person, top_color, bottom_color) ");
+    // values
+    msg_insert.append("VALUES (");
+    msg_insert.append(personId);
+    msg_insert.append(", ");
+    msg_insert.append(frameCount);
+    msg_insert.append(", ");
+    msg_insert.append(millisec);
+    msg_insert.append(", ");
+    if(age == "")
+        msg_insert.append("0");
+    else
+        msg_insert.append(age);                                       // age
+    msg_insert.append(", ");
+    if (gender.empty())
+        msg_insert.append("'undefined'");                         // gender (undefined)
+    else {
+        std::string strr = "'" + gender + "'";
+        msg_insert.append(strr);                                  // gender
+    }
+    msg_insert.append(", ");
+    std::string img_person_src = "'./person_img/person_" + personId + "_" + millisec + ".bmp'";
+    msg_insert.append(img_person_src);                            // img_person
+    msg_insert.push_back(',');
+    msg_insert.append(std::to_string(clothe_top_color[0] << 16 | clothe_top_color[1] << 8 | clothe_top_color[2]));            // top_color
+    msg_insert.push_back(',');
+    msg_insert.append(std::to_string(clothe_bottom_color[0] << 16 | clothe_bottom_color[1] << 8 | clothe_bottom_color[2]));   // bottom_color
+    msg_insert.append(")");
+
+    std::cout << std::endl << msg_insert << std::endl;  // print msg_insert string.
+
+    const char* query = msg_insert.c_str(); // query_state
+
+    query_state = mysql_query(conn, query);
+    if (query_state != 0) {
+        std::cout << mysql_error(conn) << std::endl << std::endl;
+        return;
+    }
+
+    return 0;
+}
