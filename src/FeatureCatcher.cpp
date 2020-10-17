@@ -21,10 +21,9 @@ FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval,
     // DataManager Object 생성.
     m_dataManager = new DataManager();
 
-        // !!set table name!! //
+    // !!set table name!! //
     setInfo_DB(server, port, user, pw, database, table);
     FeatureCatcher::framePerSaving = framePerSaving;
-
 
     // 몇 프레임 당 프로세스를 처리할 것인지 설정.
     this->processInterval = processInterval;
@@ -60,7 +59,7 @@ int FeatureCatcher::process() {
                 cvRound(cap.get(cv::CAP_PROP_POS_MSEC)));  // set millisec.
             frameCount = std::to_string(
                 cvRound(cap.get(cv::CAP_PROP_POS_FRAMES)));  // set frame count.
-            m_videoInspector->process(frame,                  *m_dataManager,
+            m_videoInspector->process(frame, *m_dataManager,
                                       frameCount, millisec, yourWebServerPath,
                                       framePerSaving);
         }
@@ -77,7 +76,7 @@ int FeatureCatcher::process() {
 
     //close DB
     m_dataManager->CloseDB();
-    
+
     return 0;
 }
 
@@ -91,7 +90,7 @@ void FeatureCatcher::setInfo_DB(std::string server, unsigned int port,
     FeatureCatcher::database = database;
     FeatureCatcher::table = table;
 
-    // set DB Info 
+    // set DB Info
     m_dataManager->setInfo_DB(server, port, user, pw, database, table);
 
     // connect to DB(MySQL)
@@ -99,5 +98,4 @@ void FeatureCatcher::setInfo_DB(std::string server, unsigned int port,
 
     // create a table according to the parameter 'table'
     m_dataManager->createTable(table);
-
 }
