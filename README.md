@@ -52,3 +52,31 @@ $ git clone https://github.com/intaekimme/oss_dev_competition.git
 <img src="/document/feature.jpg" width="100%" height="100%" title="특징" alt="Feature"></img>
 
 # [4. 사용법](/document/How_to_Use.md)
+
+
+# 5. MySQL 세팅
+
+- mysql.h 사용하기위해
+- $ apt-get install libmysqlclient-dev
+[ mysql.h 위치 찾기 ]
+mysql_config –cflags
+
+[ include  mysql.h 방법 ]
+#include "/usr/include/mysql/mysql.h" (위에서 찾은 위치경로)
+[ 컴파일 방법 ]
+g++ -o 프로그램명 파일명.c -lmysqlclient
+
+"/usr/lib/x86_64-linux-gnu/libmysqlclient.so"
+
+- mysql 옵션 변경
+- set root user to mysql_native_password
+
+$ sudo mysql -u root -p # I had to use "sudo" since is new installation
+
+mysql:~ USE mysql;
+SELECT User, Host, plugin FROM mysql.user;
+mysql:~ UPDATE user SET plugin='mysql_native_password' WHERE User='root';
+mysql:~ FLUSH PRIVILEGES;
+mysql:~ exit;
+
+$ service mysql restart
