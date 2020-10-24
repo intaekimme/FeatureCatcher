@@ -36,8 +36,8 @@ public:
     FeatureCatcher(std::string videoName, short processInterval, std::string yourWebServerPath,
                    std::string server, unsigned int port, std::string user,
                    std::string pw, std::string database, std::string table,
-                   int framePerSaving, bool visualzing);
-    int process();
+                   int framePerSaving, bool visualzing, DataManager& datamanager);
+    int process(/*DataManager& datamanager*/);
     void setInfo_DB(std::string server, unsigned int port, std::string user,
                     std::string pw, std::string database, std::string table);
 };
