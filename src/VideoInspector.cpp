@@ -103,6 +103,7 @@ int VideoInspector::process(cv::Mat& frame,   DataManager& dataManager,
     detectPeople(frame);
 
     std::vector<std::future<void>> futures;
+    std::cout << "people : " << people.size() << std::endl;
     for (int i = 0; i < this->people.size(); i++) {
         futures.emplace_back(pool->EnqueueJob([&, i] { processOnePerson(frame, i); }));
         // pool->EnqueueJob([&] { processOnePerson(frame, i); });
@@ -202,7 +203,10 @@ int VideoInspector::recognizeAgeGender(cv::Mat& frame, cv::Rect face, int idx) {
         std::vector<cv::String> ageGenderOutputLayers{"age_conv3", "prob"};
         ageGenderRecognizer[netIdx]->forward(ageGenderRecognizerOutputs, ageGenderOutputLayers);
 
-        age = std::to_string(*ageGenderRecognizerOutputs[0].ptr<float>() * 100);
+        // age: float -> int
+        int age_int = static_cast<int>(*ageGenderRecognizerOutputs[0].ptr<float>() * 100);
+        age = std::to_string(age_int);
+        
         ageFloat = *ageGenderRecognizerOutputs[0].ptr<float>() * 100;
         float pFemale = *ageGenderRecognizerOutputs[1].ptr<float>();
 

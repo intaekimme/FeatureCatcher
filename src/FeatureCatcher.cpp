@@ -7,7 +7,7 @@ FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval,
                                std::string server, unsigned int port,
                                std::string user, std::string pw,
                                std::string database, std::string table,
-                               int framePerSaving, bool visualizing) {
+                               int framePerSaving, bool visualizing, DataManager& datamanager) {
     // open video file.
     cap.open(videoName);
     if (!cap.isOpened()) {
@@ -15,11 +15,11 @@ FeatureCatcher::FeatureCatcher(std::string videoName, short processInterval,
     }
 
     // VideoInspector Object 생성.
-    m_videoInspector = new VideoInspector(4);
+    m_videoInspector = new VideoInspector(3);
     m_videoInspector->loadModels();
 
     // DataManager Object 생성.
-    m_dataManager = new DataManager();
+    m_dataManager = &datamanager;
 
     // !!set table name!! //
     setInfo_DB(server, port, user, pw, database, table);
@@ -41,7 +41,7 @@ FeatureCatcher::~FeatureCatcher() {
     // delete m_dataManager;
 }
 
-int FeatureCatcher::process() {
+int FeatureCatcher::process(/*DataManager& datamanager*/) {
     // open log file.
     // m_dataManager->openLogFile(logFileName);
     m_videoInspector->setFramePerSaving(framePerSaving);
@@ -75,8 +75,10 @@ int FeatureCatcher::process() {
     //                           pw, database, table);
 
     //close DB
-    m_dataManager->CloseDB();
+    //m_dataManager->CloseDB();
 
+    cv::destroyAllWindows();
+    
     return 0;
 }
 
@@ -91,10 +93,10 @@ void FeatureCatcher::setInfo_DB(std::string server, unsigned int port,
     FeatureCatcher::table = table;
 
     // set DB Info
-    m_dataManager->setInfo_DB(server, port, user, pw, database, table);
+    //m_dataManager->setInfo_DB(server, port, user, pw, database, table);
 
     // connect to DB(MySQL)
-    m_dataManager->ConnectDB(server, port, user, pw, database);
+    //m_dataManager->ConnectDB(server, port, user, pw, database);
 
     // create a table according to the parameter 'table'
     m_dataManager->createTable(table);

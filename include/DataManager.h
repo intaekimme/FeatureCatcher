@@ -1,12 +1,14 @@
 #ifndef DATAMANAGER_H
 #define DATAMANAGER_H
 
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <string>
 #include <future>
 #include <vector>
+#include <sys/stat.h>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -47,9 +49,11 @@ public:
 	//	std::string gender, std::string yourWebServerPath, cv::Vec3b clothe_top_color, cv::Vec3b clothe_bottom_color);
 	//int openLogFile(std::string logFileName);
 	int savePersonImg(cv::Mat frame, std::string personId, std::string millisec, cv::Rect person, std::string yourWebServerPath);
-	
+	void makeDirectory(std::string dirname, std::string tablename);
+
 	//DB
 	void setInfo_DB(std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table);
+	void setInfo_table_DB(std::string table);
 	//void send_insert_to_db(std::string table, std::vector<std::string> columns, std::vector<std::string> values);
 	//void readFile(std::string table, std::vector<std::string> columns, int columnSize);
 	//int saveLog2DB(std::string server, unsigned int port, std::string user, std::string pw, std::string database, std::string table);
@@ -64,6 +68,8 @@ public:
 
 	void createTable(std::string tableName);
 
+	std::vector<std::string> select_video_list();
+	void update_is_processed(std::string vl_id);
 
 };
 #endif
