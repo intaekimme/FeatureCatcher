@@ -67,6 +67,7 @@ public:
     std::string gender, std::string yourWebServerPath, cv::Vec3b clothe_top_color, cv::Vec3b clothe_bottom_color);
 
 	void createTable(std::string tableName);
+	void createTable_video_list();
 
 	std::vector<std::string> select_video_list();
 	void update_is_processed(std::string vl_id);
