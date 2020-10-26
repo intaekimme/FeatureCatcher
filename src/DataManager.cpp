@@ -186,6 +186,29 @@ void DataManager::createTable(std::string tableName)
     }
 }
 
+void DataManager::createTable_video_list()
+{
+    std::string msg_create_table = "";
+
+    msg_create_table.append("CREATE TABLE ");
+    msg_create_table.append("video_list");
+    msg_create_table.append(" (id INT auto_increment primary key, video_name VARCHAR(100) not null, is_processed INT not null) ");
+
+    std::cout
+        << std::endl
+        << msg_create_table << std::endl; // print msg_insert string.
+
+    const char *query = msg_create_table.c_str(); // query_state
+
+    query_state = mysql_query(conn, query);
+    if (query_state != 0)
+    {
+        std::cout << mysql_error(conn) << std::endl
+                  << std::endl;
+        return;
+    }
+}
+
 std::vector<std::string> DataManager::select_video_list()
 {
     // val - video_list
