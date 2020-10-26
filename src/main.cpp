@@ -59,6 +59,7 @@ int main()
     DataManager *dm = new DataManager();
     dm->setInfo_DB(db_server, db_port, db_user, "", db_database, table);
     dm->ConnectDB(db_server, db_port, db_user, "", db_database);
+    dm->createTable_video_list();
 
     while (1)
     {
