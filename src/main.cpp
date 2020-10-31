@@ -63,13 +63,16 @@ int main()
 
     while (1)
     {
-        usleep(2000000); // sleep
+        usleep(5000000); // sleep. 1s = 1000000
         
 
         std::vector<std::string> id_and_path = dm->select_video_list();
 
-        if (id_and_path[0] != "false")  
+        if (id_and_path[0] != "false")
         {
+            // wait for compeleting release (mp4).
+            usleep(20000000);
+
             // get table name
             std::string table_name = "";
             table_name.append(get_table_name(id_and_path[1]));
