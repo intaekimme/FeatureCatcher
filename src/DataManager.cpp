@@ -137,7 +137,7 @@ void DataManager::log_to_DB(std::string table, std::string personId, std::string
     }
     msg_insert.append(", ");
     // img_person ( path of img_person )
-    std::string img_person_src = "'" + yourWebServerPath + "/person_img/person_" + personId + "_" + millisec + ".bmp'";
+    std::string img_person_src = "'" + yourWebServerPath + "/" + table + "/person_img/person_" + personId + "_" + millisec + ".bmp'";
     msg_insert.append(img_person_src); // img_person
     msg_insert.push_back(',');
     // top_color ( rgb color value of top )

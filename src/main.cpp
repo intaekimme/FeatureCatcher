@@ -70,9 +70,6 @@ int main()
 
         if (id_and_path[0] != "false")
         {
-            // wait for compeleting release (mp4).
-            usleep(20000000);
-
             // get table name
             std::string table_name = "";
             table_name.append(get_table_name(id_and_path[1]));
