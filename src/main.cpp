@@ -49,7 +49,7 @@ int main()
     std::cin >> db_port;
     std::cout << "user: ";
     std::cin >> db_user;
-    std::cout << "detected person image saving path: ";
+    std::cout << "absolute path of 'featurecatcher_flask': ";
     std::cin >> img_saving_path;
     std::cout << "processing interval: ";
     std::cin >> processInterval;
