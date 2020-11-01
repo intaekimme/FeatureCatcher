@@ -16,7 +16,7 @@ void DataManager::makeDirectory(std::string dirname, std::string tablename)
     std::string command = "";
     command.append("mkdir ");
     command.append(dirname);
-    command.append("/");
+    command.append("/featurecatcher/static/temp/images/");
     command.append(tablename);
 
     const char* cmd = command.c_str();
@@ -169,7 +169,7 @@ void DataManager::createTable(std::string tableName)
 
     msg_create_table.append("CREATE TABLE ");
     msg_create_table.append(tableName);
-    msg_create_table.append(" (id INT auto_increment primary key, person_id INT not null, frame INT not null, millisec INT not null, age INT not null, gender VARCHAR(10) not null, img_person VARCHAR(100) not null, top_color INT not null, bottom_color INT not null) ");
+    msg_create_table.append(" (id INT auto_increment primary key, person_id INT not null, frame INT not null, millisec INT not null, age INT not null, gender VARCHAR(10) not null, img_person VARCHAR(200) not null, top_color INT not null, bottom_color INT not null) ");
 
     std::cout
         << std::endl
@@ -192,7 +192,7 @@ void DataManager::createTable_video_list()
 
     msg_create_table.append("CREATE TABLE ");
     msg_create_table.append("video_list");
-    msg_create_table.append(" (id INT auto_increment primary key, video_name VARCHAR(100) not null, is_processed INT not null) ");
+    msg_create_table.append(" (id INT auto_increment primary key, video_name VARCHAR(200) not null, is_processed INT not null) ");
 
     std::cout
         << std::endl
