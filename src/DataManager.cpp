@@ -34,9 +34,6 @@ int DataManager::savePersonImg(cv::Mat frame, std::string personId, std::string 
     cv::Mat3b crop = frame(person);
     //cv::String srcImg_person = yourWebServerPath + "/img_person/person_" + personId + "_" + millisec + ".bmp";
     
-    // make directory to save
-    makeDirectory(yourWebServerPath, table);
-    
     cv::String srcImg_person = "";
     srcImg_person.append(yourWebServerPath);
     srcImg_person.append("/featurecatcher/static/temp/images/");

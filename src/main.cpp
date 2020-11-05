@@ -63,8 +63,7 @@ int main()
 
     while (1)
     {
-        usleep(5000000); // sleep. 1s = 1000000
-        
+        usleep(5000000); // sleep. 1s = 1000000        
 
         std::vector<std::string> id_and_path = dm->select_video_list();
 
@@ -73,7 +72,9 @@ int main()
             // get table name
             std::string table_name = "";
             table_name.append(get_table_name(id_and_path[1]));
-            dm->setInfo_table_DB(table_name);
+            dm->setInfo_table_DB(table_name);            
+            // make directory to save
+            dm->makeDirectory(img_saving_path, table_name);
 
             std::cout << id_and_path[1] << "\n" << processInterval << "\n" << img_saving_path << "\n" <<
             db_server << "\n" << db_port << "\n" << db_user << "\n" <<
