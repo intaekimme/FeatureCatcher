@@ -37,17 +37,64 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
 
 # 4. 개발 환경 구축 및 설치
 <strong>2-1 개발 환경</strong> 
-  * 개발 OS는 Window 10 환경에서 진행되었습니다.
+  * OS : Ubuntu 20.04.1 LTS focal, x86_64
+
 
 
 <strong>2-2 사전 설치 프로그램</strong>
   
   * 2-2-1 [OpenCV 4.4.0-OpenVINO 라이브러리 포함](https://github.com/opencv/opencv/releases/tag/4.4.0)
-    * Debug용 : opencv-4.4.0-dldt-2020.4-vc16-avx2-debug.7z
-    * Release용 : opencv-4.4.0-dldt-2020.4-vc16-avx2.7z
+    * main module : OpenCV 4.4.0
+      download path :
+       https://github.com/opencv/opencv/tags
+       
+    * extra module : opencv_contrib 4.4.0
+      download path : 
+      https://github.com/opencv/opencv_contrib/releases
+      
+    * OpenCV 컴파일 전 필요 패키지
+      - build-essential
+      - cmake
+      - pkg-config
+      - libjpeg-dev libjpeg-dev libpng-dev
+      - ffmpeg libavcodec-dev libavformat-dev libswscale-dev
+       libxvidcore-dev libx264-dev libxine2-dev
+      - libv4l-dev v4l-utils
+      - libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev 
+      - libgtk-3-dev
+      - mesa-utils libgl1-mesa-dri libgtkgl2.0-dev libgtkglext1-dev
+      - libatlas-base-dev gfortran libeigen3-dev
+      
+    * OpenVINO : (install guide path) 
+        intel-openvino-dev-ubuntu18-2020.4.287
+        (이 프로젝트에서 사용한 버전) 
+        https://docs.openvinotoolkit.org/2020.4/openvino_docs_install_guides_installing_openvino_apt.html
 
-  * 2-2-2 [MySQL(8.0.21)](https://dev.mysql.com/downloads/installer/)
-    * 자세한 설치 방법은 [이](https://dog-developers.tistory.com/20) 링크로 확인하시면 됩니다.
+
+  * 2-2-2 [MySQL : Ver 8.0.21-0ubuntu0.20.04.4 for Linux on x86_64 ((Ubuntu))]
+    * MYSQL 서버 설치
+      sudo apt install mysql-server
+
+    * 루트 유저가
+      mysql_native_password
+      를 사용하도록 설정
+      $ sudo mysql -u root -p
+
+      # I had to use "sudo" since is new installation
+
+      (mysql)
+      USE mysql;
+      UPDATE User, Host, plugin FROM mysql.user;
+      UPDATE user SET plugin=’mysql_native_password’ WHERE User=’root’;
+      FLUSH PRIVILEGES;
+      exit;
+
+      $ service mysql restart
+      
+    * 최초에 featurecatcher
+      데이터베이스 생성 
+      CREATE DATABASE featurecatcher;
+
 
 <strong>2-3 FeatureCatcher 설치</strong>
 cmd창을 열고 설치하려는 경로로 이동합니다.
