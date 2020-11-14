@@ -47,7 +47,7 @@ $ git clone https://github.com/intaekimme/oss_dev_competition.git
   위에서 검출된 데이터를 가지고 구축된 DB에 데이터를 입력해줍니다.
 
 - 웹 UI
-  웹 UI는 아직 미완성입니다. 
+  분석 완료된 영상 항목들을 리스트업합니다. 영상 이름을 클릭하면 해당 영상에서 분석된 사람들을 ID별로 묶어서 데이터를 시각화합니다.
 
 <img src="/document/feature.jpg" width="100%" height="100%" title="특징" alt="Feature"></img>
 
