@@ -76,7 +76,3 @@ ipch/
 
 # VS code C/C++ configure file
 .vscode
-
-# temporary image file result
-temp/person_img/*
-!temp/person_img/.gitkeep
