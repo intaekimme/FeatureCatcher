@@ -9,13 +9,14 @@
   4. [개발 환경 구축 및 설치](#4-개발-환경-구축-및-설치)  
 
   5. [사용법](#5-사용법)
-  
-  6. [MySQL 세팅](#6-MySQL 세팅)
+
 
 # 1. 프로젝트 설명
 FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe의 모델을 사용하여 영상에서 사람과 해당 사람에 대한 특징들을 검출합니다. 특징에는 얼굴, 성별, 나이, 의상 색상이 있습니다. 검출된 특징들은 해당하는 사람 별로 DB를 구축합니다. 사용자는 웹을 통해 자신이 원하는 특징으로 영상 속에서 사람을 검색할 수 있습니다.
 
 * [시연 영상](https://www.youtube.com/watch?v=geSkcmRTUK4)
+
+
 
 # 2. 특징
 해당 프로그램은 영상을 분석하여 영상에 출현한 사람들에 다양한 특징들을 뽑아내고 DB에 저장, 웹 UI를 통해 분석 내용을 확인하는 것을 목적으로 합니다.
@@ -31,9 +32,13 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
 
 <img src="/document/feature.jpg" width="100%" height="100%" title="특징" alt="Feature"></img>
 
+
+
 # 3. 아키텍쳐
 
 <img src="/document/architecture_featurecatcher.png" height="100%" title="아키텍쳐" alt="architecuture_featurecatcher"></img>
+
+
 
 # 4. 개발 환경 구축 및 설치
 <strong>2-1 개발 환경</strong> 
@@ -72,22 +77,28 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
 
 
   * 2-2-2 [MySQL : Ver 8.0.21-0ubuntu0.20.04.4 for Linux on x86_64 ((Ubuntu))]
-    * MYSQL 서버 설치
-      sudo apt install mysql-server
+          - mysql.h 사용하기위해
+      - $ apt-get install libmysqlclient-dev
+      [ mysql.h 위치 찾기 ]
+      mysql_config –cflags
 
-    * 루트 유저가
-      mysql_native_password
-      를 사용하도록 설정
-      $ sudo mysql -u root -p
+      [ include  mysql.h 방법 ]
+      #include "/usr/include/mysql/mysql.h" (위에서 찾은 위치경로)
+      [ 컴파일 방법 ]
+      g++ -o 프로그램명 파일명.c -lmysqlclient
 
-      # I had to use "sudo" since is new installation
+      "/usr/lib/x86_64-linux-gnu/libmysqlclient.so"
 
-      (mysql)
-      USE mysql;
-      UPDATE User, Host, plugin FROM mysql.user;
-      UPDATE user SET plugin=’mysql_native_password’ WHERE User=’root’;
-      FLUSH PRIVILEGES;
-      exit;
+      - mysql 옵션 변경
+      - set root user to mysql_native_password
+
+      $ sudo mysql -u root -p # I had to use "sudo" since is new installation
+
+      mysql:~ USE mysql;
+      SELECT User, Host, plugin FROM mysql.user;
+      mysql:~ UPDATE user SET plugin='mysql_native_password' WHERE User='root';
+      mysql:~ FLUSH PRIVILEGES;
+      mysql:~ exit;
 
       $ service mysql restart
       
@@ -104,36 +115,10 @@ $ cd 설치 경로
 $ git clone https://github.com/intaekimme/oss_dev_competition.git
 ```
 
-<strong>2-4 [환경 설정](/document/Environment_setting.md)</strong>
-
 
 
 # [5. 사용법](/document/How_to_Use.md)
 
 
-# 6. MySQL 세팅
 
-- mysql.h 사용하기위해
-- $ apt-get install libmysqlclient-dev
-[ mysql.h 위치 찾기 ]
-mysql_config –cflags
 
-[ include  mysql.h 방법 ]
-#include "/usr/include/mysql/mysql.h" (위에서 찾은 위치경로)
-[ 컴파일 방법 ]
-g++ -o 프로그램명 파일명.c -lmysqlclient
-
-"/usr/lib/x86_64-linux-gnu/libmysqlclient.so"
-
-- mysql 옵션 변경
-- set root user to mysql_native_password
-
-$ sudo mysql -u root -p # I had to use "sudo" since is new installation
-
-mysql:~ USE mysql;
-SELECT User, Host, plugin FROM mysql.user;
-mysql:~ UPDATE user SET plugin='mysql_native_password' WHERE User='root';
-mysql:~ FLUSH PRIVILEGES;
-mysql:~ exit;
-
-$ service mysql restart
