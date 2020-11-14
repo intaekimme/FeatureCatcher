@@ -70,20 +70,22 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
       - mesa-utils libgl1-mesa-dri libgtkgl2.0-dev libgtkglext1-dev
       - libatlas-base-dev gfortran libeigen3-dev
       
-    * OpenVINO : (install guide path) 
-        intel-openvino-dev-ubuntu18-2020.4.287
-        (이 프로젝트에서 사용한 버전) 
+  * 2-2-2 [OpenVINO : (install guide path)] 
+        - intel-openvino-dev-ubuntu18-2020.4.287
+        - (이 프로젝트에서 사용한 버전) 
         https://docs.openvinotoolkit.org/2020.4/openvino_docs_install_guides_installing_openvino_apt.html
 
 
-  * 2-2-2 [MySQL : Ver 8.0.21-0ubuntu0.20.04.4 for Linux on x86_64 ((Ubuntu))]
-          - mysql.h 사용하기위해
+  * 2-2-3 [MySQL : Ver 8.0.21-0ubuntu0.20.04.4 for Linux on x86_64 ((Ubuntu))]
+      - mysql.h 사용하기위해
       - $ apt-get install libmysqlclient-dev
+      
       [ mysql.h 위치 찾기 ]
       mysql_config –cflags
 
       [ include  mysql.h 방법 ]
       #include "/usr/include/mysql/mysql.h" (위에서 찾은 위치경로)
+      
       [ 컴파일 방법 ]
       g++ -o 프로그램명 파일명.c -lmysqlclient
 
@@ -92,13 +94,13 @@ FeatureCatcher는 OpenCV와 pre-trained 된 intel(c) OpenVINO의 모델과 Caffe
       - mysql 옵션 변경
       - set root user to mysql_native_password
 
-      $ sudo mysql -u root -p # I had to use "sudo" since is new installation
+      - $ sudo mysql -u root -p # I had to use "sudo" since is new installation
 
-      mysql:~ USE mysql;
-      SELECT User, Host, plugin FROM mysql.user;
-      mysql:~ UPDATE user SET plugin='mysql_native_password' WHERE User='root';
-      mysql:~ FLUSH PRIVILEGES;
-      mysql:~ exit;
+      - mysql:~ USE mysql;
+      - SELECT User, Host, plugin FROM mysql.user;
+      - mysql:~ UPDATE user SET plugin='mysql_native_password' WHERE User='root';
+      - mysql:~ FLUSH PRIVILEGES;
+      - mysql:~ exit;
 
       $ service mysql restart
       
@@ -118,7 +120,3 @@ $ git clone https://github.com/intaekimme/oss_dev_competition.git
 
 
 # [5. 사용법](/document/How_to_Use.md)
-
-
-
-
