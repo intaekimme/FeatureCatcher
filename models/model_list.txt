@@ -1,0 +1,15 @@
+person-reidentification-retail-0270.xml
+person-reidentification-retail-0270.bin
+
+person-detection-0102.xml
+person-detection-0102.bin
+
+person-attributes-recognition-crossroad-0230.xml
+person-attributes-recognition-crossroad-0230.bin
+
+deploy.prototxt
+
+age-gender-recognition-retail-0013.xml
+age-gender-recognition-retail-0013.bin
+
+res10_300x300_ssd_iter_140000_fp16.caffemodel
